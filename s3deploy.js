@@ -1,6 +1,7 @@
 const { info, error, logWithSpinner, stopSpinner } = require('@vue/cli-shared-utils')
 const path = require('path')
 const fs = require('fs')
+const mime = require('mime-types')
 const AWS = require('aws-sdk')
 
 module.exports = async (options, api) => {
@@ -64,6 +65,7 @@ module.exports = async (options, api) => {
       Bucket: bucket,
       Key: fileKey,
       CacheControl: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      ContentType: mime.lookup(key) || 'application/octet-stream',
       MetadataDirective: 'REPLACE'
     }
     return new Promise((resolve, reject) => {
@@ -78,7 +80,12 @@ module.exports = async (options, api) => {
   }
 
   async function uploadFile (bucket, key, fileStream) {
-    let params = { Bucket: bucket, Key: key, Body: fileStream }
+    let params = {
+      Bucket: bucket,
+      Key: key,
+      Body: fileStream,
+      ContentType: mime.lookup(key) || 'application/octet-stream'
+    }
     let options = { partSize: 5 * 1024 * 1024, queueSize: 4 }
 
     return new Promise((resolve, reject) => {
