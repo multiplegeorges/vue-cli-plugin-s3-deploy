@@ -58,14 +58,18 @@ module.exports = async (options, api) => {
 
   info('Deploy complete.')
 
+  function contentTypeFor(filename) {
+    return mime.lookup(filename) || 'application/octet-stream'
+  }
+
   async function setCacheControl(bucket, fileKey) {
     // Copies in-place while updating the metadata.
-    var params = {
+    let params = {
       CopySource: `${bucket}/${fileKey}`,
       Bucket: bucket,
       Key: fileKey,
       CacheControl: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-      ContentType: mime.lookup(key) || 'application/octet-stream',
+      ContentType: contentTypeFor(fileKey),
       MetadataDirective: 'REPLACE'
     }
     return new Promise((resolve, reject) => {
@@ -79,12 +83,12 @@ module.exports = async (options, api) => {
     })
   }
 
-  async function uploadFile (bucket, key, fileStream) {
+  async function uploadFile (bucket, fileKey, fileStream) {
     let params = {
       Bucket: bucket,
-      Key: key,
+      Key: fileKey,
       Body: fileStream,
-      ContentType: mime.lookup(key) || 'application/octet-stream'
+      ContentType: contentTypeFor(fileKey)
     }
     let options = { partSize: 5 * 1024 * 1024, queueSize: 4 }
 
