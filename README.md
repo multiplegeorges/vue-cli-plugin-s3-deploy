@@ -1,6 +1,6 @@
 s3-deploy for vue-cli
 ===
----
+
 This [vue-cli](https://github.com/vuejs/vue-cli) plugin aims to make it easier to deploy a built Vue.js app to an S3 bucket.
 
 Prerequisites
@@ -42,12 +42,12 @@ Options
 --pwa       Sets max-age=0 for the PWA-related files specified
 ```
 
-The `pwa` option is meant to help making deploying progressive web apps a little
+The `pwa` option is meant to help make deploying progressive web apps a little
 easier. Due to the way service workers interact with caching, this option will tell
-the browser to not cache the `service-worker.js` at all. This ensures that changes made
+the browser to not cache the `service-worker.js` file at all. This ensures that changes made
 to the service worker are reflected as quickly as possible.
 
-You can override which files you don't want cached by passing a value to the option:
+You can specify which files aren't cached by passing a value to the option:
 
 `--pwa=index.html,dont-cache.css,not-this.js`
 
