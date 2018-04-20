@@ -63,7 +63,7 @@ module.exports = async (options, api) => {
       CopySource: `${bucket}/${fileKey}`,
       Bucket: bucket,
       Key: fileKey,
-      CacheControl: 'max-age=0',
+      CacheControl: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
       MetadataDirective: 'REPLACE'
     }
     return new Promise((resolve, reject) => {
