@@ -12,11 +12,7 @@ You must have a set of [valid AWS credentials set up on your system](https://doc
 Installation
 ---
 ```
-yarn add vue-cli-plugin-s3-deploy
-```
-or
-```
-npm install vue-cli-plugin-s3-deploy
+yarn add https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy.git
 ```
 
 Usage
@@ -28,7 +24,7 @@ Add a deploy task to your package.json `scripts` block:
   // ...
   "scripts": {
     // ...
-    "s3-deploy": "vue-cli-service s3-deploy",
+    "s3-deploy": "vue-cli-service s3-deploy --bucket=your-bucket-name",
     // ...
   },
   // ...
@@ -54,3 +50,5 @@ to the service worker are reflected as quickly as possible.
 You can override which files you don't want cached by passing a value to the option:
 
 `--pwa=index.html,dont-cache.css,not-this.js`
+
+---
