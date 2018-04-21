@@ -12,7 +12,7 @@ You must have a set of [valid AWS credentials set up on your system](https://doc
 Installation
 ---
 ```
-yarn add https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy.git
+yarn add vue-cli-plugin-s3-deploy
 ```
 
 Usage
