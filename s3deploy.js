@@ -124,9 +124,3 @@ module.exports = async (options, api) => {
     }, [])
   }
 }
-
-
-// aws s3 sync dist/ s3://app.getpayme.com --exclude "index.html" --exclude "service-worker.js" --exclude "manifest.json"
-// aws s3 cp --cache-control max-age=0 dist/index.html s3://app.getpayme.com
-// aws s3 cp --cache-control max-age=0 dist/service-worker.js s3://app.getpayme.com
-// aws s3 cp --cache-control max-age=0 dist/manifest.json s3://app.getpayme.com

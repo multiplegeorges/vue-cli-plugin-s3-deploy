@@ -17,21 +17,13 @@ yarn add https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy.git
 
 Usage
 ---
-Add a deploy task to your package.json `scripts` block:
 
-```js
-{
-  // ...
-  "scripts": {
-    // ...
-    "s3-deploy": "vue-cli-service s3-deploy --bucket=your-bucket-name",
-    // ...
-  },
-  // ...
-}
-```
+After installation, invoke the plugin with `vue invoke s3-deploy`.
 
-Deploy with `yarn s3-deploy`
+Answer the configuration prompts. This will inject a `deploy` script into your
+`package.json` file.
+
+Deploy your app with `yarn deploy`
 
 Options
 ---
