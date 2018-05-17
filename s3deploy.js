@@ -3,37 +3,72 @@ const path = require('path')
 const fs = require('fs')
 const mime = require('mime-types')
 const AWS = require('aws-sdk')
+const PromisePool = require('es6-promise-pool')
 
 module.exports = async (options, api) => {
   info(`AWS Region selected: ${options.awsRegion}`)
-  AWS.config.update({region: options.awsRegion})
 
-  info(`Deploying assets from ./${options.assetPath}/ to s3://${options.bucket}/`)
+  AWS.config.update({
+    region: options.awsRegion,
+    httpOptions: {
+      connectTimeout: 10 * 1000,
+      timeout: 10 * 1000
+    }
+  })
 
   let s3 = new AWS.S3()
 
   if (await bucketExists(options.bucket)) {
     let cwd = process.cwd()
-    let fileList = getAllFiles(`${cwd}/${options.assetPath}`)
     let cwdPrefix = new RegExp(`^${cwd}/${options.assetPath}/`)
+    let fileList = getAllFiles(`${cwd}/${options.assetPath}`)
 
-    for(let fileIndex = 0; fileIndex < fileList.length; fileIndex++) {
-      let filename = fileList[fileIndex]
+    let uploadCount = 0
+    let uploadTotal = fileList.length
+
+    info(`Deploying ${fileList.length} assets from ./${options.assetPath}/ to s3://${options.bucket}/`)
+
+    let nextFile = () => {
+      if (fileList.length === 0) return null
+
+      let filename = fileList.pop()
       let fileStream = fs.readFileSync(filename)
       let fileKey = filename.replace(cwdPrefix, '')
 
-      try {
-        logWithSpinner(`Uploading (${fileIndex + 1}/${fileList.length}): ${fileKey}`)
-        await uploadFile(options.bucket, fileKey, fileStream)
-        stopSpinner()
-      } catch (e) {
-        error(`Upload failed: ${fileKey}`)
-        error(e.toString())
-        stopSpinner()
-        return
-      }
+      let promise = new Promise((resolve, reject) => {
+        uploadFile(options.bucket, fileKey, fileStream)
+        .then(() => {
+          uploadCount++
+          info(`(${uploadCount}/${uploadTotal}) Uploaded ${fileKey}`)
+          resolve()
+        })
+        .catch((e) => {
+          error(`Upload failed: ${fileKey}`)
+          error(e.toString())
+          reject(e)
+        })
+      })
+
+      return promise
     }
 
+    let uploadPool = new PromisePool(nextFile, 10)
+    var poolPromise = uploadPool.start()
+
+    // Wait for the pool to settle.
+    poolPromise.then(() => {
+      info('Deploy complete.')
+      handlePWAFiles(options)
+    }, (err) => {
+      error(err.toString())
+    })
+  } else {
+    error(`Bucket ${options.bucket} does not exist.`)
+    return
+  }
+
+  async function handlePWAFiles (options) {
+    // Handle the cache setting serially for now.
     if (options.pwa) {
       let pwaFiles = options.pwa.split(',')
 
@@ -51,12 +86,7 @@ module.exports = async (options, api) => {
         }
       }
     }
-  } else {
-    error(`Bucket ${options.bucket} does not exist.`)
-    return
   }
-
-  info('Deploy complete.')
 
   function contentTypeFor(filename) {
     return mime.lookup(filename) || 'application/octet-stream'
