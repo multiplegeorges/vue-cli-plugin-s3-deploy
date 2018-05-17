@@ -48,6 +48,13 @@ You can specify which files aren't cached by passing a value to the option:
 
 `--pwa=index.html,dont-cache.css,not-this.js`
 
+Changelog
+---
+
+**v1.2**: Added parallel uploading
+
+**v1.1**: Initial Release
+
 Contributing
 ---
 
