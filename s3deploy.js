@@ -6,10 +6,10 @@ const AWS = require('aws-sdk')
 const PromisePool = require('es6-promise-pool')
 
 module.exports = async (options, api) => {
-  info(`AWS Region selected: ${options.awsRegion}`)
+  info(`Options: ${JSON.stringify(options)}`)
 
   AWS.config.update({
-    region: options.awsRegion,
+    region: options.region,
     httpOptions: {
       connectTimeout: 10 * 1000,
       timeout: 10 * 1000

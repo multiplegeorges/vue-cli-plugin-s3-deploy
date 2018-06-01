@@ -37,7 +37,7 @@ Options
 ---
 ```
 --bucket    The S3 bucket name, eg: my-site-bucket (required)
---awsRegion AWS region for the specified bucket (default: us-east-1)
+--region AWS region for the specified bucket (default: us-east-1)
 --assetPath The path to the built assets (default: dist)
 --pwa       Sets max-age=0 for the PWA-related files specified
 ```
@@ -50,8 +50,28 @@ You can specify which files aren't cached by passing a value to the option:
 
 `--pwa=index.html,dont-cache.css,not-this.js`
 
+Per-Environment Options
+---
+
+Deployment options can be overridden but .env files to support development, stating, and production deployment environments.
+
+The .env file options are:
+
+```
+VUE_APP_S3D_BUCKET=staging-bucket
+VUE_APP_S3D_ASSET_PATH=dist/staging
+VUE_APP_S3D_REGION=staging-cloud-provider-east-1
+VUE_APP_S3D_PWA=service-worker-stage.js
+VUE_APP_S3D_CONCURRENCY=3
+```
+
+**These options OVERRIDE the cli options set in package.json** and should be used to customize a default set of options. A common use case is only overriding `VUE_APP_S3D_BUCKET` for production deployment.
+
+
 Changelog
 ---
+
+**v1.3**: Added support for .env files and per-environment options
 
 **v1.2**: Added parallel uploading
 
