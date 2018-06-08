@@ -53,7 +53,7 @@ You can specify which files aren't cached by passing a value to the option:
 Per-Environment Options
 ---
 
-Deployment options can be overridden but .env files to support development, stating, and production deployment environments.
+Deployment options can be overridden with .env files to support development, staging, and production deployment environments.
 
 The .env file options are:
 
