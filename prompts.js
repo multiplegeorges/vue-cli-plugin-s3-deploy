@@ -28,6 +28,29 @@ module.exports = [
     type: 'input',
     message: 'Disable caching on which files (comma-separated)?',
     default: 'service-worker.js',
+    validate: input => input !== '' ? true : 'At least one file path is requires.',
     when: answers => answers.pwa === true
+  },
+  {
+    name: 'enableCloudfront',
+    type: 'confirm',
+    message: 'Enable invalidation of a CloudFront distribution on deploy?',
+    default: false
+  },
+  {
+    name: 'cloudfrontId',
+    type: 'input',
+    message: 'What is the ID of the distribution to invalidate?',
+    default: '',
+    when: answers => answers.enableCloudfront === true,
+    validate: input => input !== '' ? true : 'A distribution ID is required.'
+  },
+  {
+    name: 'cloudfrontMatchers',
+    type: 'input',
+    message: 'Enter a comma-separated list of paths to invalidate:',
+    default: '/*',
+    when: answers => answers.enableCloudfront === true,
+    validate: input => input !== '' ? true : 'At least one invalidation path is required. To invalidate all files, enter /* '
   }
 ]

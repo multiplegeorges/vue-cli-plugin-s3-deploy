@@ -52,13 +52,14 @@ module.exports = async (options, api) => {
       return promise
     }
 
-    let uploadPool = new PromisePool(nextFile, 10)
+    let uploadPool = new PromisePool(nextFile, parseInt(options.uploadConcurrency, 10))
     var poolPromise = uploadPool.start()
 
     // Wait for the pool to settle.
     poolPromise.then(() => {
       info('Deploy complete.')
       handlePWAFiles(options)
+      invalidateDistribution(options.cloudfrontId, options.cloudfrontMatchers)
     }, (err) => {
       error(err.toString())
     })
@@ -70,7 +71,7 @@ module.exports = async (options, api) => {
   async function handlePWAFiles (options) {
     // Handle the cache setting serially for now.
     if (options.pwa) {
-      let pwaFiles = options.pwa.split(',')
+      let pwaFiles = options.pwaFiles.split(',')
 
       for(let i = 0; i < pwaFiles.length; i++) {
         let fileKey = pwaFiles[i]
@@ -152,5 +153,55 @@ module.exports = async (options, api) => {
       const isDirectory = fs.statSync(name).isDirectory()
       return isDirectory ? [...files, ...getAllFiles(name)] : [...files, name]
     }, [])
+  }
+
+  function isCloudfrontEnabled () {
+    // When this option is overridden in a .env file, the option comes through as a string, not a boolean.
+    // So, we need to check for the string version as well.
+    return options.enableCloudfront === true || options.enableCloudfront.toLowerCase() === 'true'
+  }
+
+  function invalidateDistribution (id, matcher) {
+    if (!isCloudfrontEnabled()) { return }
+
+    let cloudfront = new AWS.CloudFront()
+
+    return new Promise((resolve, reject) => {
+      let invalidationItems = options.cloudfrontMatchers.split(',')
+
+      let params = {
+        DistributionId: id,
+        InvalidationBatch: {
+          CallerReference: `vue-cli-plugin-s3-deploy-${Date.now().toString()}`,
+          Paths: {
+            Quantity: invalidationItems.length,
+            Items: invalidationItems
+          }
+        }
+      }
+
+      logWithSpinner(`Invalidating CloudFront distribution: ${ id }`)
+      cloudfront.createInvalidation(params, (err, data) => {
+        if (err) {
+          error('Cloudfront Error!')
+          error(`Code: ${err.code}`)
+          error(`Message: ${err.message}`)
+          error(`AWS Request ID: ${err.requestId}`)
+          
+          stopSpinner()
+
+          reject(err)
+        } else {
+          info(`Invalidation ID: ${data['Invalidation']['Id']}`)
+          info(`Status: ${data['Invalidation']['Status']}`)
+          info(`Call Reference: ${data['Invalidation']['InvalidationBatch']['CallerReference']}`)
+          info(`See your AWS console for on-going status on this invalidation.`)
+
+          stopSpinner()
+          
+          resolve()
+        }
+      })
+    })
   }
 }
