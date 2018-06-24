@@ -1,17 +1,18 @@
 module.exports = (api, options, rootOptions) => {
-  let scriptOptions = [
-    `--assetPath=${options.assetPath}`,
-    `--bucket=${options.bucket}`,
-    `--region=${options.region}`,
-  ]
-
-  if (options.pwa) {
-    scriptOptions.push(`--pwa=${options.pwaFiles}`)
-  }
-
   api.extendPackage({
     scripts: {
-      deploy: `vue-cli-service s3-deploy ${scriptOptions.join(' ')}`
+      deploy: `vue-cli-service s3-deploy`
+    }
+  })
+
+  // Override this in a .env file or in vue.config.js
+  options.uploadConcurrency = 5
+
+  api.extendPackage({
+    vue: {
+      pluginOptions: {
+        s3Deploy: options
+      }
     }
   })
 }
