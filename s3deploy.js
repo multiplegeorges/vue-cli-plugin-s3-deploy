@@ -158,7 +158,7 @@ module.exports = async (options, api) => {
   function isCloudfrontEnabled () {
     // When this option is overridden in a .env file, the option comes through as a string, not a boolean.
     // So, we need to check for the string version as well.
-    return options.enableCloudfront === true || options.enableCloudfront.toLowerCase() === 'true'
+    return options.enableCloudfront === true || options.enableCloudfront.toString().toLowerCase() === 'true'
   }
 
   function invalidateDistribution (id, matcher) {
