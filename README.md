@@ -85,6 +85,10 @@ VUE_APP_S3D_CLOUDFRONT_MATCHERS=/index.html,/styles/*.css,/*.png
 Changelog
 ---
 
+**v2.0.2**
+
+- Fixed bug where deployment crashes if you declined Cloudfront on initial invocation.
+
 **v2.0.0**
 - Added support for invalidating Cloudfront distributions on deploy. 
 - Refactored how the configuration is stored and brought it more inline with vue cli standards. All config is in vue.config.js now.
