@@ -31,7 +31,7 @@ After installation, invoke the plugin with `vue invoke s3-deploy`.
 
 Answer the configuration prompts. This will inject a `deploy` script command into your `package.json` file.
 
-Deploy your app with `yarn deploy`
+Deploy your app with `yarn deploy`.
 
 Options
 ---
@@ -47,13 +47,13 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
     pwa: "Sets max-age=0 for the PWA-related files specified",
     enableCloudfront: "Enables support for Cloudfront distribution invalidation",
     cloudfrontId: "The ID of the distribution to invalidate",
-    cloudfrontMatchers: "A list of paths to invalidate"
+    cloudfrontMatchers: "A comma-separated list of paths to invalidate (default: /*)"
 }
 ```
 
 The `pwa` option is meant to help make deploying progressive web apps a little easier. Due to the way service workers interact with caching, this option alone will tell the browser to not cache the `service-worker.js` file by default. This ensures that changes made to the service worker are reflected as quickly as possible.
 
-You can specify which files aren't cached by setting a value for the `pawFiles` option:
+You can specify which files aren't cached by setting a value for the `pwaFiles` option:
 
 ```js
 {
