@@ -3,6 +3,11 @@ const {
   warn
 } = require('@vue/cli-shared-utils')
 
+process.on('unhandledRejection', (message) => {
+  error(message)
+  process.exit(1)
+})
+
 module.exports = (api, projectOptions) => {
   api.registerCommand('s3-deploy', {
     description: 'Deploys the built assets to an S3 bucket based on options set in vue.config.js.',
