@@ -23,11 +23,13 @@ module.exports = (api, projectOptions) => {
       'cloudfrontMatchers': 'A list of paths to invalidate'
     }
   }, (args) => {
-    warn('As of v1.3, s3deploy supports .env file variables.')
-    warn('Current support for CLI options will be removed in upcoming versions. Please move your settings into .env files.')
-    warn('See: https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy#per-environment-options')
-
-    let options = projectOptions.pluginOptions.s3Deploy
+    let options = {};
+    if (projectOptions && projectOptions.pluginOptions && projectOptions.pluginOptions.s3Deploy) {
+      warn('As of v1.3, s3deploy supports .env file variables.')
+      warn('Current support for CLI options will be removed in upcoming versions. Please move your settings into .env files.')
+      warn('See: https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy#per-environment-options')
+      options = projectOptions.pluginOptions.s3Deploy;
+    }
 
     // Check for environmental overrides.
     options.bucket = process.env.VUE_APP_S3D_BUCKET || options.bucket

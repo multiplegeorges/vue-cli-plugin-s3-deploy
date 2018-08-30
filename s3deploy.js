@@ -136,12 +136,12 @@ module.exports = async (options, api) => {
 
   async function bucketExists (bucketName) {
     return new Promise((resolve, reject) => {
-      s3.listBuckets((err, data) => {
+      let params = { Bucket: bucketName }
+      s3.headBucket(params, function(err, data) {
         if (err) {
           reject(err)
         } else {
-          let names = data['Buckets'].map(b => b['Name'])
-          resolve(names.includes(bucketName))
+          resolve(true)
         }
       })
     })
