@@ -16,16 +16,17 @@ module.exports = (api, projectOptions) => {
       'bucket': 'The S3 bucket name (required)',
       'region': 'AWS region for the specified bucket (default: us-east-1)',
       'assetPath': 'The path to the built assets (default: dist)',
+      'deployPath': 'Path to deploy the app in the bucket (default: /)',
       'uploadConcurrency': 'The number of concurrent uploads to S3 (default: 3)',
       'pwa': 'Sets max-age=0 for the PWA-related files specified',
       'enableCloudfront': 'Enables support for Cloudfront distribution invalidation',
       'cloudfrontId': 'The ID of the distribution to invalidate',
       'cloudfrontMatchers': 'A list of paths to invalidate'
     }
-  }, (args) => {
+  }, (_) => {
     let options = {};
     if (projectOptions && projectOptions.pluginOptions && projectOptions.pluginOptions.s3Deploy) {
-      warn('As of v1.3, s3deploy supports .env file variables.')
+      warn('As of v1.3, s3-deploy supports .env file variables.')
       warn('Current support for CLI options will be removed in upcoming versions. Please move your settings into .env files.')
       warn('See: https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy#per-environment-options')
       options = projectOptions.pluginOptions.s3Deploy;
@@ -34,6 +35,7 @@ module.exports = (api, projectOptions) => {
     // Check for environmental overrides.
     options.bucket = process.env.VUE_APP_S3D_BUCKET || options.bucket
     options.assetPath = process.env.VUE_APP_S3D_ASSET_PATH || options.assetPath
+    options.deployPath = process.env.VUE_APP_S3D_DEPLOY_PATH || options.deployPath
     options.region = process.env.VUE_APP_S3D_REGION || options.region
     options.pwa = process.env.VUE_APP_S3D_PWA || options.pwa
     options.uploadConcurrency = process.env.VUE_APP_S3D_UPLOAD_CONCURRENCY || options.uploadConcurrency
