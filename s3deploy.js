@@ -8,7 +8,15 @@ const PromisePool = require('es6-promise-pool')
 module.exports = async (options, api) => {
   info(`Options: ${JSON.stringify(options)}`)
 
+  let credentials = new AWS.SharedIniFileCredentials({ profile: options.awsProfile });
+  credentials.get((err) => {
+    if (err) {
+      error(err.toString())
+    }
+  })
+
   AWS.config.update({
+    credentials: credentials,
     region: options.region,
     httpOptions: {
       connectTimeout: 10 * 1000,

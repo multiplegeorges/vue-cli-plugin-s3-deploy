@@ -8,6 +8,7 @@ This [vue-cli](https://github.com/vuejs/vue-cli) plugin aims to make it easier t
 Supports:
 
 * Custom AWS regions
+* Support for AWS credential profiles
 * Concurrent uploads for improved deploy times
 * CloudFront distribution invalidation
 * Correct `Cache-Control` metadata for use with PWAs and Service Workers
@@ -40,6 +41,7 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
 
 ```js
 {
+    awsProfile: 'Name of credential profile to use for authentication (default: default)',
     region: "AWS region for the specified bucket (default: us-east-1)",
     bucket: "The S3 bucket name (required)",
     assetPath: "The path to the built assets (default: dist)",
@@ -70,6 +72,7 @@ Deployment options can be overridden with .env files to support development, sta
 The .env file options are, with examples:
 
 ```sh
+VUE_APP_S3D_AWS_PROFILE=stagingadmin
 VUE_APP_S3D_BUCKET=staging-bucket
 VUE_APP_S3D_ASSET_PATH=dist/staging
 VUE_APP_S3D_deploy_PATH=/app-staging
@@ -89,9 +92,9 @@ Changelog
 
 **2.1**
 
-- Added `deployPath` option. Allows you to deploy to folder in the bucket, not always to the root.
-- Added `awsProfileName` for using AWS credentials other than `default`.
-- Fixed issue #12: paths were built naively and broke deployment on Windows platforms.
+- Added `deployPath` option. Allows you to deploy to folder in the bucket, not always to the root. Fixes #15.
+- Added `awsProfile` for using AWS credentials other than `default`. Fixes #19.
+- Fixed #12: paths were built naively and broke deployment on Windows platforms.
 
 **v2.0.2**
 

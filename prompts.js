@@ -1,5 +1,11 @@
 module.exports = [
   {
+    name: 'awsProfile',
+    type: 'input',
+    message: 'Name of the AWS credentials profile to use?',
+    default: 'default'
+  },
+  {
     name: 'region',
     type: 'input',
     message: 'Which AWS region hosts the bucket?',
