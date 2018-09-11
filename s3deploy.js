@@ -35,7 +35,7 @@ module.exports = async (options, api) => {
     // We don't need a leading slash for root deploys on S3.
     if (deployPath.startsWith('/')) deployPath = deployPath.slice(1, deployPath.length)
     // But we do need to make sure there's a trailing one on the path.
-    if (!deployPath.endsWith('/')) deployPath = deployPath + '/'
+    if (!deployPath.endsWith('/') && deployPath.length > 0) deployPath = deployPath + '/'
 
     let uploadCount = 0
     let uploadTotal = fileList.length

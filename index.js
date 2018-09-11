@@ -8,32 +8,14 @@ process.on('unhandledRejection', (message) => {
   process.exit(1)
 })
 
-module.exports = (api, projectOptions) => {
+module.exports = (api, configOptions) => {
   api.registerCommand('s3-deploy', {
-    description: 'Deploys the built assets to an S3 bucket based on options set in vue.config.js.',
-    usage: 'vue-cli-service s3-deploy',
-    options: {
-      'awsProfile': 'Name of credential profile to use for authentication (default: default)',
-      'bucket': 'The S3 bucket name (required)',
-      'region': 'AWS region for the specified bucket (default: us-east-1)',
-      'assetPath': 'The path to the built assets (default: dist)',
-      'deployPath': 'Path to deploy the app in the bucket (default: /)',
-      'uploadConcurrency': 'The number of concurrent uploads to S3 (default: 3)',
-      'pwa': 'Sets max-age=0 for the PWA-related files specified',
-      'enableCloudfront': 'Enables support for Cloudfront distribution invalidation',
-      'cloudfrontId': 'The ID of the distribution to invalidate',
-      'cloudfrontMatchers': 'A list of paths to invalidate'
-    }
+    description: 'Deploys the built assets to an S3 bucket based on options set in vue.config.js. Configuration done via `vue invoke s3-deploy`',
+    usage: 'vue-cli-service s3-deploy'
   }, (_) => {
-    let options = {};
-    if (projectOptions && projectOptions.pluginOptions && projectOptions.pluginOptions.s3Deploy) {
-      warn('As of v1.3, s3-deploy supports .env file variables.')
-      warn('Current support for CLI options will be removed in upcoming versions. Please move your settings into .env files.')
-      warn('See: https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy#per-environment-options')
-      options = projectOptions.pluginOptions.s3Deploy;
-    }
+    let options = configOptions.pluginOptions.s3Deploy
 
-    // Check for environmental overrides.
+    // Check for environment overrides of the options in vue.config.js.
     options.awsProfile = process.env.VUE_APP_S3D_AWS_PROFILE|| options.awsProfile
     options.bucket = process.env.VUE_APP_S3D_BUCKET || options.bucket
     options.assetPath = process.env.VUE_APP_S3D_ASSET_PATH || options.assetPath
