@@ -13,6 +13,7 @@ module.exports = (api, projectOptions) => {
     description: 'Deploys the built assets to an S3 bucket based on options set in vue.config.js.',
     usage: 'vue-cli-service s3-deploy',
     options: {
+      'awsProfile': 'Name of credential profile to use for authentication (default: default)',
       'bucket': 'The S3 bucket name (required)',
       'region': 'AWS region for the specified bucket (default: us-east-1)',
       'assetPath': 'The path to the built assets (default: dist)',
@@ -33,6 +34,7 @@ module.exports = (api, projectOptions) => {
     }
 
     // Check for environmental overrides.
+    options.awsProfile = process.env.VUE_APP_S3D_AWS_PROFILE|| options.awsProfile
     options.bucket = process.env.VUE_APP_S3D_BUCKET || options.bucket
     options.assetPath = process.env.VUE_APP_S3D_ASSET_PATH || options.assetPath
     options.deployPath = process.env.VUE_APP_S3D_DEPLOY_PATH || options.deployPath
