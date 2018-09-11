@@ -41,7 +41,6 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
 
 ```js
 {
-    awsProfile: 'Name of credential profile to use for authentication (default: default)',
     region: "AWS region for the specified bucket (default: us-east-1)",
     bucket: "The S3 bucket name (required)",
     assetPath: "The path to the built assets (default: dist)",
@@ -86,9 +85,24 @@ VUE_APP_S3D_CLOUDFRONT_MATCHERS=/index.html,/styles/*.css,/*.png
 
 **These options OVERRIDE the config options set in vue.config.js** and should be used to customize a default set of options. A common use case is only overriding `VUE_APP_S3D_BUCKET` for production deployment.
 
+Specifying AWS Credentials
+---
+
+The AWS SDK will pick up the default credentials from your `~/.aws/credentials` file and it will pick up credentials from the environment variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`.
+
+To specify credentials other than `default` in `~/.aws/credentials`, change the command in `package.json` to:
+
+```js
+  "deploy": "AWS_PROFILE=other-profile-name vue-cli-service s3-deploy"
+```
+
 
 Changelog
 ---
+
+**2.1.1**
+
+- Rollback crendential selection via `awsProfile`. The SDK supports this via the `AWS_PROFILE` environment variable.
 
 **2.1**
 
