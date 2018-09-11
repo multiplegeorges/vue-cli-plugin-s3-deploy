@@ -88,7 +88,7 @@ VUE_APP_S3D_CLOUDFRONT_MATCHERS=/index.html,/styles/*.css,/*.png
 Specifying AWS Credentials
 ---
 
-The AWS SDK will pick up the default credentials from your `~/.aws/credentials` file and it will pick up credentials from the environment variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`.
+The AWS SDK will pick up the default credentials from your `~/.aws/credentials` file and from the environment variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`.
 
 To specify credentials other than `default` in `~/.aws/credentials`, change the command in `package.json` to:
 
