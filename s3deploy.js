@@ -21,7 +21,6 @@ module.exports = async (options, api) => {
   if (await bucketExists(options.bucket)) {
     let cwd = process.cwd()
     let fullAssetPath = path.join(cwd, options.assetPath) + path.sep // path.sep appends a trailing / or \ depending on platform.
-    let assetPathPrefix = new RegExp(`^${fullAssetPath}`)
     let fileList = getAllFiles(fullAssetPath)
 
     let uploadCount = 0
@@ -34,7 +33,7 @@ module.exports = async (options, api) => {
 
       let filename = fileList.pop()
       let fileStream = fs.readFileSync(filename)
-      let fileKey = filename.replace(assetPathPrefix, '')
+      let fileKey = filename.replace(fullAssetPath, '')
 
       let promise = new Promise((resolve, reject) => {
         uploadFile(options.bucket, fileKey, fileStream)
