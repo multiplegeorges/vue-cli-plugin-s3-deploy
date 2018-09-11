@@ -1,9 +1,9 @@
 module.exports = [
   {
-    name: 'assetPath',
+    name: 'region',
     type: 'input',
-    message: 'Where are your built files?',
-    default: 'dist'
+    message: 'Which AWS region hosts the bucket?',
+    default: 'us-east-1'
   },
   {
     name: 'bucket',
@@ -12,10 +12,16 @@ module.exports = [
     validate: input => input !== '' ? true : 'A bucket name is required.'
   },
   {
-    name: 'region',
+    name: 'assetPath',
     type: 'input',
-    message: 'Which AWS region hosts the bucket?',
-    default: 'us-east-1'
+    message: 'Where are your built files?',
+    default: 'dist'
+  },
+  {
+    name: 'deployPath',
+    type: 'input',
+    message: 'Where in the bucket should the files be deployed?',
+    default: '/'
   },
   {
     name: 'pwa',

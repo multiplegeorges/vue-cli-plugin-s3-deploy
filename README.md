@@ -11,12 +11,12 @@ Supports:
 * Concurrent uploads for improved deploy times
 * CloudFront distribution invalidation
 * Correct `Cache-Control` metadata for use with PWAs and Service Workers
+* Configurable paths for multiple Vue apps in a single bucket
 
 Prerequisites
 ---
 
 You must have a set of [valid AWS credentials set up on your system](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).
-
 
 Installation
 ---
@@ -40,9 +40,10 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
 
 ```js
 {
-    bucket: "The S3 bucket name (required)",
     region: "AWS region for the specified bucket (default: us-east-1)",
+    bucket: "The S3 bucket name (required)",
     assetPath: "The path to the built assets (default: dist)",
+    deployPath: "Path to deploy the app in the bucket (default: /)",
     uploadConcurrency: "The number of concurrent uploads to S3 (default: 3)",
     pwa: "Sets max-age=0 for the PWA-related files specified",
     enableCloudfront: "Enables support for Cloudfront distribution invalidation",
@@ -71,6 +72,7 @@ The .env file options are, with examples:
 ```sh
 VUE_APP_S3D_BUCKET=staging-bucket
 VUE_APP_S3D_ASSET_PATH=dist/staging
+VUE_APP_S3D_deploy_PATH=/app-staging
 VUE_APP_S3D_REGION=staging-aws-east-1
 VUE_APP_S3D_PWA=service-worker-stage.js,index.html
 VUE_APP_S3D_UPLOAD_CONCURRENCY=5
@@ -85,12 +87,18 @@ VUE_APP_S3D_CLOUDFRONT_MATCHERS=/index.html,/styles/*.css,/*.png
 Changelog
 ---
 
+**2.1**
+
+- Added `deployPath` option. Allows you to deploy to folder in the bucket, not always to the root.
+- Added `awsProfileName` for using AWS credentials other than `default`.
+- Fixed issue #12: paths were built naively and broke deployment on Windows platforms.
+
 **v2.0.2**
 
 - Fixed bug where deployment crashes if you declined Cloudfront on initial invocation.
 
 **v2.0.0**
-- Added support for invalidating Cloudfront distributions on deploy. 
+- Added support for invalidating Cloudfront distributions on deploy.
 - Refactored how the configuration is stored and brought it more inline with vue cli standards. All config is in vue.config.js now.
 - Updated the dependency on vue-cli to 3.0.0-rc3
 - Squashed a few bugs along the way
@@ -107,5 +115,5 @@ Changelog
 Contributing
 ---
 
-Contributions welcome. 
+Contributions welcome.
 Just open a pull request.

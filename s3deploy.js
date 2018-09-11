@@ -23,6 +23,12 @@ module.exports = async (options, api) => {
     let cwdPrefix = new RegExp(`^${cwd}/${options.assetPath}/`)
     let fileList = getAllFiles(`${cwd}/${options.assetPath}`)
 
+    let deployPath = options.deployPath
+    // We don't need a leading slash for root deploys on S3.
+    if (deployPath.startsWith('/')) deployPath = deployPath.slice(1, deployPath.length)
+    // But we do need to make sure there's a trailing one on the path.
+    if (!deployPath.endsWith('/')) deployPath = deployPath + '/'
+
     let uploadCount = 0
     let uploadTotal = fileList.length
 
@@ -36,14 +42,15 @@ module.exports = async (options, api) => {
       let fileKey = filename.replace(cwdPrefix, '')
 
       let promise = new Promise((resolve, reject) => {
-        uploadFile(options.bucket, fileKey, fileStream)
+        let fullFileKey = `${deployPath}${fileKey}`
+        uploadFile(options.bucket, fullFileKey, fileStream)
         .then(() => {
           uploadCount++
-          info(`(${uploadCount}/${uploadTotal}) Uploaded ${fileKey}`)
+          info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}`)
           resolve()
         })
         .catch((e) => {
-          error(`Upload failed: ${fileKey}`)
+          error(`Upload failed: ${fullFileKey}`)
           error(e.toString())
           reject(e)
         })
@@ -121,6 +128,7 @@ module.exports = async (options, api) => {
       Body: fileStream,
       ContentType: contentTypeFor(fileKey)
     }
+
     let options = { partSize: 5 * 1024 * 1024, queueSize: 4 }
 
     return new Promise((resolve, reject) => {
@@ -161,7 +169,7 @@ module.exports = async (options, api) => {
     return options.enableCloudfront === true || options.enableCloudfront.toString().toLowerCase() === 'true'
   }
 
-  function invalidateDistribution (id, matcher) {
+  function invalidateDistribution (id) {
     if (!isCloudfrontEnabled()) { return }
 
     let cloudfront = new AWS.CloudFront()
@@ -183,22 +191,20 @@ module.exports = async (options, api) => {
       logWithSpinner(`Invalidating CloudFront distribution: ${ id }`)
       cloudfront.createInvalidation(params, (err, data) => {
         if (err) {
+          stopSpinner()
+
           error('Cloudfront Error!')
           error(`Code: ${err.code}`)
           error(`Message: ${err.message}`)
           error(`AWS Request ID: ${err.requestId}`)
-          
-          stopSpinner()
-
           reject(err)
         } else {
+          stopSpinner()
+
           info(`Invalidation ID: ${data['Invalidation']['Id']}`)
           info(`Status: ${data['Invalidation']['Status']}`)
           info(`Call Reference: ${data['Invalidation']['InvalidationBatch']['CallerReference']}`)
           info(`See your AWS console for on-going status on this invalidation.`)
-
-          stopSpinner()
-          
           resolve()
         }
       })
