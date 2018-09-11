@@ -20,20 +20,20 @@ module.exports = async (options, api) => {
 
   if (await bucketExists(options.bucket)) {
     let cwd = process.cwd()
-    let cwdPrefix = new RegExp(`^${cwd}/${options.assetPath}/`)
-    let fileList = getAllFiles(`${cwd}/${options.assetPath}`)
+    let fullAssetPath = path.join(cwd, options.assetPath) + path.sep // path.sep appends a trailing / or \ depending on platform.
+    let fileList = getAllFiles(fullAssetPath)
 
     let uploadCount = 0
     let uploadTotal = fileList.length
 
-    info(`Deploying ${fileList.length} assets from ./${options.assetPath}/ to s3://${options.bucket}/`)
+    info(`Deploying ${fileList.length} assets from ${fullAssetPath} to s3://${options.bucket}/`)
 
     let nextFile = () => {
       if (fileList.length === 0) return null
 
       let filename = fileList.pop()
       let fileStream = fs.readFileSync(filename)
-      let fileKey = filename.replace(cwdPrefix, '')
+      let fileKey = filename.replace(fullAssetPath, '')
 
       let promise = new Promise((resolve, reject) => {
         uploadFile(options.bucket, fileKey, fileStream)
@@ -161,7 +161,7 @@ module.exports = async (options, api) => {
     return options.enableCloudfront === true || options.enableCloudfront.toString().toLowerCase() === 'true'
   }
 
-  function invalidateDistribution (id, matcher) {
+  function invalidateDistribution (id) {
     if (!isCloudfrontEnabled()) { return }
 
     let cloudfront = new AWS.CloudFront()
@@ -187,7 +187,7 @@ module.exports = async (options, api) => {
           error(`Code: ${err.code}`)
           error(`Message: ${err.message}`)
           error(`AWS Request ID: ${err.requestId}`)
-          
+
           stopSpinner()
 
           reject(err)
@@ -198,7 +198,7 @@ module.exports = async (options, api) => {
           info(`See your AWS console for on-going status on this invalidation.`)
 
           stopSpinner()
-          
+
           resolve()
         }
       })
