@@ -74,7 +74,7 @@ The .env file options are, with examples:
 VUE_APP_S3D_AWS_PROFILE=stagingadmin
 VUE_APP_S3D_BUCKET=staging-bucket
 VUE_APP_S3D_ASSET_PATH=dist/staging
-VUE_APP_S3D_deploy_PATH=/app-staging
+VUE_APP_S3D_DEPLOY_PATH=/app-staging
 VUE_APP_S3D_REGION=staging-aws-east-1
 VUE_APP_S3D_PWA=service-worker-stage.js,index.html
 VUE_APP_S3D_UPLOAD_CONCURRENCY=5
