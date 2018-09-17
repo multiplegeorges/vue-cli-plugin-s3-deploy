@@ -5,7 +5,7 @@ const mime = require('mime-types')
 const AWS = require('aws-sdk')
 const PromisePool = require('es6-promise-pool')
 
-module.exports = async (options, api) => {
+module.exports = async(options, api) => {
   info(`Options: ${JSON.stringify(options)}`)
 
   AWS.config.update({
@@ -43,17 +43,17 @@ module.exports = async (options, api) => {
 
       let promise = new Promise((resolve, reject) => {
         let fullFileKey = `${deployPath}${fileKey}`
-        uploadFile(options.bucket, fullFileKey, fileStream)
-        .then(() => {
-          uploadCount++
-          info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}`)
-          resolve()
-        })
-        .catch((e) => {
-          error(`Upload failed: ${fullFileKey}`)
-          error(e.toString())
-          reject(e)
-        })
+        uploadFile(options.bucket, options.publicReadFiles, fullFileKey, fileStream)
+          .then(() => {
+            uploadCount++
+            info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}`)
+            resolve()
+          })
+          .catch((e) => {
+            error(`Upload failed: ${fullFileKey}`)
+            error(e.toString())
+            reject(e)
+          })
       })
 
       return promise
@@ -70,23 +70,25 @@ module.exports = async (options, api) => {
     }, (err) => {
       error(err.toString())
     })
-  } else {
+  }
+  else {
     error(`Bucket ${options.bucket} does not exist.`)
     return
   }
 
-  async function handlePWAFiles (options) {
+  async function handlePWAFiles(options) {
     // Handle the cache setting serially for now.
     if (options.pwa) {
       let pwaFiles = options.pwaFiles.split(',')
 
-      for(let i = 0; i < pwaFiles.length; i++) {
+      for (let i = 0; i < pwaFiles.length; i++) {
         let fileKey = pwaFiles[i]
         try {
           logWithSpinner(`Setting Cache-Control (${i+1}/${pwaFiles.length}): ${fileKey}`)
           await setCacheControl(options.bucket, fileKey)
           stopSpinner()
-        } catch (e) {
+        }
+        catch (e) {
           error(`Setting Cache-Control failed: ${fileKey}`)
           error(e.toString())
           stopSpinner()
@@ -114,19 +116,24 @@ module.exports = async (options, api) => {
       s3.copyObject(params, function(err, data) {
         if (err) {
           reject(err)
-        } else {
+        }
+        else {
           resolve(data)
         }
       })
     })
   }
 
-  async function uploadFile (bucket, fileKey, fileStream) {
+  async function uploadFile(bucket, publicReadFiles, fileKey, fileStream) {
     let params = {
       Bucket: bucket,
       Key: fileKey,
       Body: fileStream,
       ContentType: contentTypeFor(fileKey)
+    }
+
+    if (publicReadFiles) {
+      params['ACL'] = 'public-read'
     }
 
     let options = { partSize: 5 * 1024 * 1024, queueSize: 4 }
@@ -135,27 +142,29 @@ module.exports = async (options, api) => {
       s3.upload(params, options, function(err, data) {
         if (err) {
           reject(err)
-        } else {
+        }
+        else {
           resolve(data)
         }
       })
     })
   }
 
-  async function bucketExists (bucketName) {
+  async function bucketExists(bucketName) {
     return new Promise((resolve, reject) => {
       let params = { Bucket: bucketName }
       s3.headBucket(params, function(err, data) {
         if (err) {
           reject(err)
-        } else {
+        }
+        else {
           resolve(true)
         }
       })
     })
   }
 
-  function getAllFiles (dir) {
+  function getAllFiles(dir) {
     return fs.readdirSync(dir).reduce((files, file) => {
       const name = path.join(dir, file)
       const isDirectory = fs.statSync(name).isDirectory()
@@ -163,13 +172,13 @@ module.exports = async (options, api) => {
     }, [])
   }
 
-  function isCloudfrontEnabled () {
+  function isCloudfrontEnabled() {
     // When this option is overridden in a .env file, the option comes through as a string, not a boolean.
     // So, we need to check for the string version as well.
     return options.enableCloudfront === true || options.enableCloudfront.toString().toLowerCase() === 'true'
   }
 
-  function invalidateDistribution (id) {
+  function invalidateDistribution(id) {
     if (!isCloudfrontEnabled()) { return }
 
     let cloudfront = new AWS.CloudFront()
@@ -198,7 +207,8 @@ module.exports = async (options, api) => {
           error(`Message: ${err.message}`)
           error(`AWS Request ID: ${err.requestId}`)
           reject(err)
-        } else {
+        }
+        else {
           stopSpinner()
 
           info(`Invalidation ID: ${data['Invalidation']['Id']}`)

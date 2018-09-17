@@ -25,13 +25,15 @@ module.exports = (api, configOptions) => {
     options.enableCloudfront = process.env.VUE_APP_S3D_ENABLE_CLOUDFRONT || options.enableCloudfront
     options.cloudfrontId = process.env.VUE_APP_S3D_CLOUDFRONT_ID || options.cloudfrontId
     options.cloudfrontMatchers = process.env.VUE_APP_S3D_CLOUDFRONT_MATCHERS || options.cloudfrontMatchers
+    options.publicReadFiles = process.env.VUE_APP_S3D_PUBLIC_READ_FILES || options.publicReadFiles
 
     if (!options.bucket) {
       error('Bucket name must be specified with `bucket` in vue.config.js!')
-    } else {
+    }
+    else {
       if (options.pwa && !options.pwaFiles) {
-          warn('Option pwa is set but no files specified! Defaulting to: service-worker.js')
-          options.pwa = 'service-worker.js'
+        warn('Option pwa is set but no files specified! Defaulting to: service-worker.js')
+        options.pwa = 'service-worker.js'
       }
 
       require('./s3deploy.js')(options, api)
