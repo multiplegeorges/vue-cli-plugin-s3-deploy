@@ -8,13 +8,26 @@ const PromisePool = require('es6-promise-pool')
 module.exports = async (options, api) => {
   info(`Options: ${JSON.stringify(options)}`)
 
-  AWS.config.update({
+  let aws_config = {
     region: options.region,
     httpOptions: {
-      connectTimeout: 10 * 1000,
-      timeout: 10 * 1000
+      connectTimeout: 30 * 1000,
+      timeout: 120 * 1000
     }
-  })
+  }
+
+  if (options.awsProfile != 'default') {
+    let credentials = new AWS.SharedIniFileCredentials({ profile: options.awsProfile });
+    await credentials.get((err) => {
+      if (err) {
+        error(err.toString())
+      }
+
+      aws_config.credentials = credentials
+    })
+  }
+
+  AWS.config.update(aws_config)
 
   let s3 = new AWS.S3()
 
@@ -43,6 +56,7 @@ module.exports = async (options, api) => {
 
       let promise = new Promise((resolve, reject) => {
         let fullFileKey = `${deployPath}${fileKey}`
+
         uploadFile(options.bucket, fullFileKey, fileStream)
         .then(() => {
           uploadCount++
