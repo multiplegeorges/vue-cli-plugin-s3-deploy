@@ -29,8 +29,7 @@ module.exports = (api, configOptions) => {
 
     if (!options.bucket) {
       error('Bucket name must be specified with `bucket` in vue.config.js!')
-    }
-    else {
+    } else {
       if (options.pwa && !options.pwaFiles) {
         warn('Option pwa is set but no files specified! Defaulting to: service-worker.js')
         options.pwa = 'service-worker.js'
