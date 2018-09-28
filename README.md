@@ -44,6 +44,7 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
     region: "AWS region for the specified bucket (default: us-east-1)",
     bucket: "The S3 bucket name (required)",
     assetPath: "The path to the built assets (default: dist)",
+    assetMatch: "Coma seperated glob patterns of files to include/exclude (default: *)",
     deployPath: "Path to deploy the app in the bucket (default: /)",
     uploadConcurrency: "The number of concurrent uploads to S3 (default: 3)",
     pwa: "Sets max-age=0 for the PWA-related files specified",

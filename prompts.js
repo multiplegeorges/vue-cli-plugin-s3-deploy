@@ -18,6 +18,12 @@ module.exports = [
     default: 'dist'
   },
   {
+    name: 'assetMatch',
+    type: 'input',
+    message: 'Which files should be deployed? (Glob/Minimatch)',
+    default: '**'
+  },
+  {
     name: 'deployPath',
     type: 'input',
     message: 'Where in the bucket should the files be deployed?',
