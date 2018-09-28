@@ -1,6 +1,7 @@
 const { info, error, logWithSpinner, stopSpinner } = require('@vue/cli-shared-utils')
 const path = require('path')
 const fs = require('fs')
+const globby = require('globby')
 const mime = require('mime-types')
 const AWS = require('aws-sdk')
 const PromisePool = require('es6-promise-pool')
@@ -32,7 +33,7 @@ module.exports = async (options, api) => {
     let uploadCount = 0
     let uploadTotal = fileList.length
 
-    info(`Deploying ${fileList.length} assets from ${fullAssetPath} to s3://${options.bucket}/`)
+    info(`Deploying ${fileList.length} assets matching '${options.assetMatch.join(', ')}' from ${fullAssetPath} to s3://${options.bucket}/`)
 
     let nextFile = () => {
       if (fileList.length === 0) return null
@@ -44,16 +45,16 @@ module.exports = async (options, api) => {
       let promise = new Promise((resolve, reject) => {
         let fullFileKey = `${deployPath}${fileKey}`
         uploadFile(options.bucket, fullFileKey, fileStream)
-        .then(() => {
-          uploadCount++
-          info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}`)
-          resolve()
-        })
-        .catch((e) => {
-          error(`Upload failed: ${fullFileKey}`)
-          error(e.toString())
-          reject(e)
-        })
+          .then(() => {
+            uploadCount++
+            info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}`)
+            resolve()
+          })
+          .catch((e) => {
+            error(`Upload failed: ${fullFileKey}`)
+            error(e.toString())
+            reject(e)
+          })
       })
 
       return promise
@@ -72,7 +73,6 @@ module.exports = async (options, api) => {
     })
   } else {
     error(`Bucket ${options.bucket} does not exist.`)
-    return
   }
 
   async function handlePWAFiles (options) {
@@ -80,10 +80,10 @@ module.exports = async (options, api) => {
     if (options.pwa) {
       let pwaFiles = options.pwaFiles.split(',')
 
-      for(let i = 0; i < pwaFiles.length; i++) {
+      for (let i = 0; i < pwaFiles.length; i++) {
         let fileKey = pwaFiles[i]
         try {
-          logWithSpinner(`Setting Cache-Control (${i+1}/${pwaFiles.length}): ${fileKey}`)
+          logWithSpinner(`Setting Cache-Control (${i + 1}/${pwaFiles.length}): ${fileKey}`)
           await setCacheControl(options.bucket, fileKey)
           stopSpinner()
         } catch (e) {
@@ -96,11 +96,11 @@ module.exports = async (options, api) => {
     }
   }
 
-  function contentTypeFor(filename) {
+  function contentTypeFor (filename) {
     return mime.lookup(filename) || 'application/octet-stream'
   }
 
-  async function setCacheControl(bucket, fileKey) {
+  async function setCacheControl (bucket, fileKey) {
     // Copies in-place while updating the metadata.
     let params = {
       CopySource: `${bucket}/${fileKey}`,
@@ -111,7 +111,7 @@ module.exports = async (options, api) => {
       MetadataDirective: 'REPLACE'
     }
     return new Promise((resolve, reject) => {
-      s3.copyObject(params, function(err, data) {
+      s3.copyObject(params, function (err, data) {
         if (err) {
           reject(err)
         } else {
@@ -132,7 +132,7 @@ module.exports = async (options, api) => {
     let options = { partSize: 5 * 1024 * 1024, queueSize: 4 }
 
     return new Promise((resolve, reject) => {
-      s3.upload(params, options, function(err, data) {
+      s3.upload(params, options, function (err, data) {
         if (err) {
           reject(err)
         } else {
@@ -145,7 +145,7 @@ module.exports = async (options, api) => {
   async function bucketExists (bucketName) {
     return new Promise((resolve, reject) => {
       let params = { Bucket: bucketName }
-      s3.headBucket(params, function(err, data) {
+      s3.headBucket(params, function (err, data) {
         if (err) {
           reject(err)
         } else {
@@ -156,11 +156,7 @@ module.exports = async (options, api) => {
   }
 
   function getAllFiles (dir) {
-    return fs.readdirSync(dir).reduce((files, file) => {
-      const name = path.join(dir, file)
-      const isDirectory = fs.statSync(name).isDirectory()
-      return isDirectory ? [...files, ...getAllFiles(name)] : [...files, name]
-    }, [])
+    return globby.sync(options.assetMatch, { cwd: dir }) || []
   }
 
   function isCloudfrontEnabled () {
@@ -188,7 +184,7 @@ module.exports = async (options, api) => {
         }
       }
 
-      logWithSpinner(`Invalidating CloudFront distribution: ${ id }`)
+      logWithSpinner(`Invalidating CloudFront distribution: ${id}`)
       cloudfront.createInvalidation(params, (err, data) => {
         if (err) {
           stopSpinner()
