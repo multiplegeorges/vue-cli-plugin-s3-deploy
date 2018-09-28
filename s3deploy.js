@@ -33,7 +33,7 @@ module.exports = async (options, api) => {
     let uploadCount = 0
     let uploadTotal = fileList.length
 
-    info(`Deploying ${fileList.length} assets matching '${options.assetMatch.join(', ')}' from ${fullAssetPath} to s3://${options.bucket}/`)
+    info(`Deploying ${fileList.length} assets matching '${options.assetMatch.join(',')}' from ${fullAssetPath} to s3://${options.bucket}/`)
 
     let nextFile = () => {
       if (fileList.length === 0) return null
@@ -47,7 +47,7 @@ module.exports = async (options, api) => {
         uploadFile(options.bucket, fullFileKey, fileStream)
           .then(() => {
             uploadCount++
-            info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}`)
+            info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey.replace(cwd, '')}`)
             resolve()
           })
           .catch((e) => {
@@ -156,7 +156,7 @@ module.exports = async (options, api) => {
   }
 
   function getAllFiles (dir) {
-    return globby.sync(options.assetMatch, { cwd: dir }) || []
+    return globby.sync(options.assetMatch, { cwd: dir }).map(file => path.join(dir, file))
   }
 
   function isCloudfrontEnabled () {

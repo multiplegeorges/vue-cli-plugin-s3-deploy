@@ -18,7 +18,7 @@ module.exports = (api, configOptions) => {
     // Check for environment overrides of the options in vue.config.js.
     options.bucket = process.env.VUE_APP_S3D_BUCKET || options.bucket
     options.assetPath = process.env.VUE_APP_S3D_ASSET_PATH || options.assetPath
-    options.assetPathMatch = (process.env.VUE_APP_S3D_ASSET_PATH_MATCH || options.assetPathMatch).split(',') || '*'
+    options.assetMatch = (process.env.VUE_APP_S3D_ASSET_MATCH || options.assetMatch || '**').split(',')
     options.deployPath = process.env.VUE_APP_S3D_DEPLOY_PATH || options.deployPath
     options.region = process.env.VUE_APP_S3D_REGION || options.region
     options.pwa = process.env.VUE_APP_S3D_PWA || options.pwa
