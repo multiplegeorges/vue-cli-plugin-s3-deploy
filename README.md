@@ -50,6 +50,7 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
     enableCloudfront: "Enables support for Cloudfront distribution invalidation",
     cloudfrontId: "The ID of the distribution to invalidate",
     cloudfrontMatchers: "A comma-separated list of paths to invalidate (default: /*)"
+    publicReadFiles: "Apply public-read permissions to all dist files (default: true)"
 }
 ```
 
@@ -81,6 +82,8 @@ VUE_APP_S3D_UPLOAD_CONCURRENCY=5
 VUE_APP_S3D_ENABLE_CLOUDFRONT=true
 VUE_APP_S3D_CLOUDFRONT_ID=AIXXXXXXXX
 VUE_APP_S3D_CLOUDFRONT_MATCHERS=/index.html,/styles/*.css,/*.png
+VUE_APP_S3D_CLOUDFRONT_MATCHERS=/index.html,/styles/*.css,/*.png
+VUE_APP_S3D_PUBLIC_READ_FILES=true
 ```
 
 **These options OVERRIDE the config options set in vue.config.js** and should be used to customize a default set of options. A common use case is only overriding `VUE_APP_S3D_BUCKET` for production deployment.
@@ -99,6 +102,10 @@ To specify credentials other than `default` in `~/.aws/credentials`, change the 
 
 Changelog
 ---
+
+**2.1.2**
+
+- Add option to write public-read permissions on all dist/ files.
 
 **2.1.1**
 

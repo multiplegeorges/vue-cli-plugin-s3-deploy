@@ -43,17 +43,17 @@ module.exports = async (options, api) => {
 
       let promise = new Promise((resolve, reject) => {
         let fullFileKey = `${deployPath}${fileKey}`
-        uploadFile(options.bucket, fullFileKey, fileStream)
-        .then(() => {
-          uploadCount++
-          info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}`)
-          resolve()
-        })
-        .catch((e) => {
-          error(`Upload failed: ${fullFileKey}`)
-          error(e.toString())
-          reject(e)
-        })
+        uploadFile(options.bucket, options.acl, fullFileKey, fileStream)
+          .then(() => {
+            uploadCount++
+            info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}`)
+            resolve()
+          })
+          .catch((e) => {
+            error(`Upload failed: ${fullFileKey}`)
+            error(e.toString())
+            reject(e)
+          })
       })
 
       return promise
@@ -72,7 +72,6 @@ module.exports = async (options, api) => {
     })
   } else {
     error(`Bucket ${options.bucket} does not exist.`)
-    return
   }
 
   async function handlePWAFiles (options) {
@@ -80,11 +79,11 @@ module.exports = async (options, api) => {
     if (options.pwa) {
       let pwaFiles = options.pwaFiles.split(',')
 
-      for(let i = 0; i < pwaFiles.length; i++) {
+      for (let i = 0; i < pwaFiles.length; i++) {
         let fileKey = pwaFiles[i]
         try {
-          logWithSpinner(`Setting Cache-Control (${i+1}/${pwaFiles.length}): ${fileKey}`)
-          await setCacheControl(options.bucket, fileKey)
+          logWithSpinner(`Setting Cache-Control (${i + 1}/${pwaFiles.length}): ${fileKey}`)
+          await setCacheControl(options.bucket, options.acl, fileKey)
           stopSpinner()
         } catch (e) {
           error(`Setting Cache-Control failed: ${fileKey}`)
@@ -96,22 +95,23 @@ module.exports = async (options, api) => {
     }
   }
 
-  function contentTypeFor(filename) {
+  function contentTypeFor (filename) {
     return mime.lookup(filename) || 'application/octet-stream'
   }
 
-  async function setCacheControl(bucket, fileKey) {
+  async function setCacheControl (bucket, acl, fileKey) {
     // Copies in-place while updating the metadata.
     let params = {
       CopySource: `${bucket}/${fileKey}`,
       Bucket: bucket,
       Key: fileKey,
+      ACL: acl,
       CacheControl: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
       ContentType: contentTypeFor(fileKey),
       MetadataDirective: 'REPLACE'
     }
     return new Promise((resolve, reject) => {
-      s3.copyObject(params, function(err, data) {
+      s3.copyObject(params, function (err, data) {
         if (err) {
           reject(err)
         } else {
@@ -121,18 +121,19 @@ module.exports = async (options, api) => {
     })
   }
 
-  async function uploadFile (bucket, fileKey, fileStream) {
+  async function uploadFile (bucket, acl, fileKey, fileStream) {
     let params = {
       Bucket: bucket,
       Key: fileKey,
       Body: fileStream,
-      ContentType: contentTypeFor(fileKey)
+      ContentType: contentTypeFor(fileKey),
+      ACL: acl
     }
 
     let options = { partSize: 5 * 1024 * 1024, queueSize: 4 }
 
     return new Promise((resolve, reject) => {
-      s3.upload(params, options, function(err, data) {
+      s3.upload(params, options, function (err, data) {
         if (err) {
           reject(err)
         } else {
@@ -145,7 +146,7 @@ module.exports = async (options, api) => {
   async function bucketExists (bucketName) {
     return new Promise((resolve, reject) => {
       let params = { Bucket: bucketName }
-      s3.headBucket(params, function(err, data) {
+      s3.headBucket(params, function (err, data) {
         if (err) {
           reject(err)
         } else {
@@ -188,7 +189,7 @@ module.exports = async (options, api) => {
         }
       }
 
-      logWithSpinner(`Invalidating CloudFront distribution: ${ id }`)
+      logWithSpinner(`Invalidating CloudFront distribution: ${id}`)
       cloudfront.createInvalidation(params, (err, data) => {
         if (err) {
           stopSpinner()
