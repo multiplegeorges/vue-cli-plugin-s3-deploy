@@ -20,12 +20,12 @@ module.exports = (api, configOptions) => {
     options.assetPath = process.env.VUE_APP_S3D_ASSET_PATH || options.assetPath
     options.deployPath = process.env.VUE_APP_S3D_DEPLOY_PATH || options.deployPath
     options.region = process.env.VUE_APP_S3D_REGION || options.region
+    options.acl = process.env.VUE_APP_S3D_ACL || options.acl
     options.pwa = process.env.VUE_APP_S3D_PWA || options.pwa
     options.uploadConcurrency = process.env.VUE_APP_S3D_UPLOAD_CONCURRENCY || options.uploadConcurrency
     options.enableCloudfront = process.env.VUE_APP_S3D_ENABLE_CLOUDFRONT || options.enableCloudfront
     options.cloudfrontId = process.env.VUE_APP_S3D_CLOUDFRONT_ID || options.cloudfrontId
     options.cloudfrontMatchers = process.env.VUE_APP_S3D_CLOUDFRONT_MATCHERS || options.cloudfrontMatchers
-    options.publicReadFiles = process.env.VUE_APP_S3D_PUBLIC_READ_FILES || options.publicReadFiles
 
     if (!options.bucket) {
       error('Bucket name must be specified with `bucket` in vue.config.js!')

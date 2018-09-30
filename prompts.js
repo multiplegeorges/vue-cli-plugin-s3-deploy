@@ -23,6 +23,13 @@ module.exports = [{
   default: '/'
 },
 {
+  name: 'acl',
+  type: 'list',
+  choices: ['private', 'public-read', 'public-read-write', 'aws-exec-read', 'authenticated-read', 'bucket-owner-read', 'bucket-owner-full-control'],
+  message: 'Which Access Control List (ACL) setting should be applied to deployed files?',
+  default: 'public-read'
+},
+{
   name: 'pwa',
   type: 'confirm',
   message: 'Enable PWA deploy (disables caching of certain files) options?',
@@ -57,11 +64,5 @@ module.exports = [{
   default: '/*',
   when: answers => answers.enableCloudfront === true,
   validate: input => input !== '' ? true : 'At least one invalidation path is required. To invalidate all files, enter /* '
-},
-{
-  name: 'publicReadFiles',
-  type: 'confirm',
-  message: 'Apply public-read permissions to all dist files?',
-  default: true
 }
 ]

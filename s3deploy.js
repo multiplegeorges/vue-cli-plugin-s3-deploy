@@ -43,7 +43,7 @@ module.exports = async (options, api) => {
 
       let promise = new Promise((resolve, reject) => {
         let fullFileKey = `${deployPath}${fileKey}`
-        uploadFile(options.bucket, options.publicReadFiles, fullFileKey, fileStream)
+        uploadFile(options.bucket, options.acl, fullFileKey, fileStream)
           .then(() => {
             uploadCount++
             info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}`)
@@ -83,7 +83,7 @@ module.exports = async (options, api) => {
         let fileKey = pwaFiles[i]
         try {
           logWithSpinner(`Setting Cache-Control (${i + 1}/${pwaFiles.length}): ${fileKey}`)
-          await setCacheControl(options.bucket, fileKey)
+          await setCacheControl(options.bucket, options.acl, fileKey)
           stopSpinner()
         } catch (e) {
           error(`Setting Cache-Control failed: ${fileKey}`)
@@ -99,12 +99,13 @@ module.exports = async (options, api) => {
     return mime.lookup(filename) || 'application/octet-stream'
   }
 
-  async function setCacheControl (bucket, fileKey) {
+  async function setCacheControl (bucket, acl, fileKey) {
     // Copies in-place while updating the metadata.
     let params = {
       CopySource: `${bucket}/${fileKey}`,
       Bucket: bucket,
       Key: fileKey,
+      ACL: acl,
       CacheControl: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
       ContentType: contentTypeFor(fileKey),
       MetadataDirective: 'REPLACE'
@@ -120,16 +121,13 @@ module.exports = async (options, api) => {
     })
   }
 
-  async function uploadFile (bucket, publicReadFiles, fileKey, fileStream) {
+  async function uploadFile (bucket, acl, fileKey, fileStream) {
     let params = {
       Bucket: bucket,
       Key: fileKey,
       Body: fileStream,
-      ContentType: contentTypeFor(fileKey)
-    }
-
-    if (publicReadFiles) {
-      params['ACL'] = 'public-read'
+      ContentType: contentTypeFor(fileKey),
+      ACL: acl
     }
 
     let options = { partSize: 5 * 1024 * 1024, queueSize: 4 }
