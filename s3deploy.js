@@ -2,8 +2,161 @@ const { info, error, logWithSpinner, stopSpinner } = require('@vue/cli-shared-ut
 const path = require('path')
 const fs = require('fs')
 const mime = require('mime-types')
+const globby = require('globby')
 const AWS = require('aws-sdk')
 const PromisePool = require('es6-promise-pool')
+
+const S3 = new AWS.S3()
+
+function contentTypeFor (filename) {
+  return mime.lookup(filename) || 'application/octet-stream'
+}
+
+async function bucketExists (options) {
+  let headParams = { Bucket: options.bucket }
+  let bucketExists = false
+
+  try {
+    bucketExists = await S3.headBucket(headParams).promise()
+  } catch (headErr) {
+    error(`Bucket: ${options.bucket} does not exist. AWS Error: ${headErr.toString()}`)
+  }
+
+  if (!bucketExists && options.createBucket) {
+    let createParams = {
+      Bucket: options.bucket,
+      ACL: options.acl,
+      CreateBucketConfiguration: {
+        LocationConstraint: options.region
+      }
+    }
+
+    // Create bucket
+    try {
+      bucketExists = await S3.createBucket(createParams).promise()
+      info(`Created Bucket: ${options.bucket} in Region: ${options.region}`)
+    } catch (createErr) {
+      error(`Bucket: ${options.bucket} could not be created. AWS Error: ${createErr.toString()}`)
+    }
+  }
+
+  if (bucketExists && options.staticHosting) {
+    let staticParams = {
+      Bucket: options.bucket,
+      WebsiteConfiguration: {
+        ErrorDocument: {
+          Key: options.staticErrorPage
+        },
+        IndexDocument: {
+          Suffix: options.staticIndexPage
+        }
+      }
+    }
+
+    // use custom WebsiteConfiguration if set
+    if (options.staticWebsiteConfiguration) {
+      staticParams.WebsiteConfiguration = options.staticWebsiteConfiguration
+    }
+
+    // enable static hosting
+    try {
+      await S3.putBucketWebsite(staticParams).promise()
+    } catch (staticErr) {
+      error(`Static Website Hosting could not be enabled on bucket: ${options.bucket}. AWS Error: ${staticErr.toString()}`)
+    }
+  }
+
+  return bucketExists
+}
+
+function getAllFiles (options) {
+  return globby.sync(options.assetMatch, { cwd: options.fullAssetPath }).map(file => path.join(options.fullAssetPath, file))
+}
+
+async function invalidateDistribution (options) {
+  const cloudfront = new AWS.CloudFront()
+  const invalidationItems = options.cloudfrontMatchers.split(',')
+
+  let params = {
+    DistributionId: options.cloudfrontId,
+    InvalidationBatch: {
+      CallerReference: `vue-cli-plugin-s3-deploy-${Date.now().toString()}`,
+      Paths: {
+        Quantity: invalidationItems.length,
+        Items: invalidationItems
+      }
+    }
+  }
+
+  logWithSpinner(`Invalidating CloudFront distribution: ${options.cloudfrontId}`)
+
+  try {
+    let data = await cloudfront.createInvalidation(params).promise()
+
+    info(`Invalidation ID: ${data['Invalidation']['Id']}`)
+    info(`Status: ${data['Invalidation']['Status']}`)
+    info(`Call Reference: ${data['Invalidation']['InvalidationBatch']['CallerReference']}`)
+    info(`See your AWS console for on-going status on this invalidation.`)
+  } catch (err) {
+    error('Cloudfront Error!')
+    error(`Code: ${err.code}`)
+    error(`Message: ${err.message}`)
+    error(`AWS Request ID: ${err.requestId}`)
+  }
+
+  stopSpinner()
+}
+
+function * generateFilePromises (options) {
+  options.cwd = process.cwd()
+  options.fullAssetPath = path.join(options.cwd, options.assetPath) + path.sep
+  options.fileList = getAllFiles(options)
+
+  info(`Deploying ${options.fileList.length} assets from ${options.fullAssetPath} to s3://${options.bucket}/`)
+
+  for (let i = 0; i < options.fileList.length; i++) {
+    yield addFilePromise(options, i)
+  }
+}
+
+async function addFilePromise (options, i) {
+  let filename = options.fileList[i]
+  let fileStream = fs.readFileSync(filename)
+  let fileKey = filename.replace(options.fullAssetPath, '').replace(/\\/g, '/')
+  let pwaSupport = options.pwa && options.pwaFiles.split(',').indexOf(fileKey) > -1
+  let deployPath = options.deployPath
+
+  // We don't need a leading slash for root deploys on S3.
+  if (deployPath.startsWith('/')) deployPath = deployPath.slice(1, deployPath.length)
+  // But we do need to make sure there's a trailing one on the path.
+  if (!deployPath.endsWith('/') && deployPath.length > 1) deployPath = deployPath + '/'
+
+  let fullFileKey = `${deployPath}${fileKey}`
+
+  let uploadParams = {
+    Bucket: options.bucket,
+    Key: fileKey,
+    ACL: options.acl,
+    Body: fileStream,
+    ContentType: contentTypeFor(fileKey)
+  }
+
+  if (pwaSupport) {
+    uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+  }
+
+  let uploadOptions = { partSize: (5 * 1024 * 1024), queueSize: 4 }
+  let count = `(${i + 1}/${options.fileList.length})`
+  let pwaStr = pwaSupport ? ' with cache disabled for PWA' : ''
+
+  try {
+    await S3.upload(uploadParams, uploadOptions).promise()
+    info(`${count} Uploaded ${fullFileKey}${pwaStr}.`)
+  } catch (uploadResultErr) {
+    // pass full error with details back to promisePool callback
+    throw new Error(`${count} Upload failed: ${fullFileKey}\n${uploadResultErr.toString()}`)
+  }
+}
 
 module.exports = async (options, api) => {
   info(`Options: ${JSON.stringify(options)}`)
@@ -16,198 +169,25 @@ module.exports = async (options, api) => {
     }
   })
 
-  let s3 = new AWS.S3()
-
-  if (await bucketExists(options.bucket)) {
-    let cwd = process.cwd()
-    let fullAssetPath = path.join(cwd, options.assetPath) + path.sep // path.sep appends a trailing / or \ depending on platform.
-    let fileList = getAllFiles(fullAssetPath)
-
-    let deployPath = options.deployPath
-    // We don't need a leading slash for root deploys on S3.
-    if (deployPath.startsWith('/')) deployPath = deployPath.slice(1, deployPath.length)
-    // But we do need to make sure there's a trailing one on the path.
-    if (!deployPath.endsWith('/') && deployPath.length > 0) deployPath = deployPath + '/'
-
-    let uploadCount = 0
-    let uploadTotal = fileList.length
-
-    info(`Deploying ${fileList.length} assets from ${fullAssetPath} to s3://${options.bucket}/`)
-
-    let nextFile = () => {
-      if (fileList.length === 0) return null
-
-      let filename = fileList.pop()
-      let fileStream = fs.readFileSync(filename)
-      let fileKey = filename.replace(fullAssetPath, '')
-
-      let promise = new Promise((resolve, reject) => {
-        let fullFileKey = `${deployPath}${fileKey}`
-        uploadFile(options.bucket, fullFileKey, fileStream)
-        .then(() => {
-          uploadCount++
-          info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}`)
-          resolve()
-        })
-        .catch((e) => {
-          error(`Upload failed: ${fullFileKey}`)
-          error(e.toString())
-          reject(e)
-        })
-      })
-
-      return promise
-    }
-
-    let uploadPool = new PromisePool(nextFile, parseInt(options.uploadConcurrency, 10))
-    var poolPromise = uploadPool.start()
-
-    // Wait for the pool to settle.
-    poolPromise.then(() => {
-      info('Deploy complete.')
-      handlePWAFiles(options)
-      invalidateDistribution(options.cloudfrontId, options.cloudfrontMatchers)
-    }, (err) => {
-      error(err.toString())
-    })
-  } else {
+  try {
+    await bucketExists(options)
+  } catch (existsErr) {
     error(`Bucket ${options.bucket} does not exist.`)
     return
   }
 
-  async function handlePWAFiles (options) {
-    // Handle the cache setting serially for now.
-    if (options.pwa) {
-      let pwaFiles = options.pwaFiles.split(',')
+  const promiseIterator = generateFilePromises(options)
+  const uploadPool = new PromisePool(promiseIterator, parseInt(options.uploadConcurrency, 10))
 
-      for(let i = 0; i < pwaFiles.length; i++) {
-        let fileKey = pwaFiles[i]
-        try {
-          logWithSpinner(`Setting Cache-Control (${i+1}/${pwaFiles.length}): ${fileKey}`)
-          await setCacheControl(options.bucket, fileKey)
-          stopSpinner()
-        } catch (e) {
-          error(`Setting Cache-Control failed: ${fileKey}`)
-          error(e.toString())
-          stopSpinner()
-          return
-        }
-      }
+  try {
+    await uploadPool.start()
+    info('Deploy complete.')
+
+    if (options.enableCloudfront) {
+      invalidateDistribution(options)
     }
-  }
-
-  function contentTypeFor(filename) {
-    return mime.lookup(filename) || 'application/octet-stream'
-  }
-
-  async function setCacheControl(bucket, fileKey) {
-    // Copies in-place while updating the metadata.
-    let params = {
-      CopySource: `${bucket}/${fileKey}`,
-      Bucket: bucket,
-      Key: fileKey,
-      CacheControl: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-      ContentType: contentTypeFor(fileKey),
-      MetadataDirective: 'REPLACE'
-    }
-    return new Promise((resolve, reject) => {
-      s3.copyObject(params, function(err, data) {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(data)
-        }
-      })
-    })
-  }
-
-  async function uploadFile (bucket, fileKey, fileStream) {
-    let params = {
-      Bucket: bucket,
-      Key: fileKey,
-      Body: fileStream,
-      ContentType: contentTypeFor(fileKey)
-    }
-
-    let options = { partSize: 5 * 1024 * 1024, queueSize: 4 }
-
-    return new Promise((resolve, reject) => {
-      s3.upload(params, options, function(err, data) {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(data)
-        }
-      })
-    })
-  }
-
-  async function bucketExists (bucketName) {
-    return new Promise((resolve, reject) => {
-      let params = { Bucket: bucketName }
-      s3.headBucket(params, function(err, data) {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(true)
-        }
-      })
-    })
-  }
-
-  function getAllFiles (dir) {
-    return fs.readdirSync(dir).reduce((files, file) => {
-      const name = path.join(dir, file)
-      const isDirectory = fs.statSync(name).isDirectory()
-      return isDirectory ? [...files, ...getAllFiles(name)] : [...files, name]
-    }, [])
-  }
-
-  function isCloudfrontEnabled () {
-    // When this option is overridden in a .env file, the option comes through as a string, not a boolean.
-    // So, we need to check for the string version as well.
-    return options.enableCloudfront === true || options.enableCloudfront.toString().toLowerCase() === 'true'
-  }
-
-  function invalidateDistribution (id) {
-    if (!isCloudfrontEnabled()) { return }
-
-    let cloudfront = new AWS.CloudFront()
-
-    return new Promise((resolve, reject) => {
-      let invalidationItems = options.cloudfrontMatchers.split(',')
-
-      let params = {
-        DistributionId: id,
-        InvalidationBatch: {
-          CallerReference: `vue-cli-plugin-s3-deploy-${Date.now().toString()}`,
-          Paths: {
-            Quantity: invalidationItems.length,
-            Items: invalidationItems
-          }
-        }
-      }
-
-      logWithSpinner(`Invalidating CloudFront distribution: ${ id }`)
-      cloudfront.createInvalidation(params, (err, data) => {
-        if (err) {
-          stopSpinner()
-
-          error('Cloudfront Error!')
-          error(`Code: ${err.code}`)
-          error(`Message: ${err.message}`)
-          error(`AWS Request ID: ${err.requestId}`)
-          reject(err)
-        } else {
-          stopSpinner()
-
-          info(`Invalidation ID: ${data['Invalidation']['Id']}`)
-          info(`Status: ${data['Invalidation']['Status']}`)
-          info(`Call Reference: ${data['Invalidation']['InvalidationBatch']['CallerReference']}`)
-          info(`See your AWS console for on-going status on this invalidation.`)
-          resolve()
-        }
-      })
-    })
+  } catch (uploadErr) {
+    error(`Deploy completed with errors.`)
+    error(`${uploadErr.toString()}`)
   }
 }

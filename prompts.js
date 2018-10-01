@@ -12,16 +12,57 @@ module.exports = [
     validate: input => input !== '' ? true : 'A bucket name is required.'
   },
   {
+    name: 'createBucket',
+    type: 'confirm',
+    message: 'Create bucket if does not exist?',
+    default: true
+  },
+  {
+    name: 'staticHosting',
+    type: 'confirm',
+    message: 'Enable Static Site Hosting on bucket?',
+    default: true
+  },
+  {
+    name: 'staticIndexPage',
+    type: 'input',
+    message: 'Filename of static index page:',
+    default: 'index.html',
+    when: answers => answers.staticHosting === true,
+    validate: input => input !== '' ? true : 'A filename is required.'
+  },
+  {
+    name: 'staticErrorPage',
+    type: 'input',
+    message: 'Filename of static error page:',
+    default: 'index.html',
+    when: answers => answers.staticHosting === true,
+    validate: input => input !== '' ? true : 'A filename is required.'
+  },
+  {
     name: 'assetPath',
     type: 'input',
     message: 'Where are your built files?',
     default: 'dist'
   },
   {
+    name: 'assetMatch',
+    type: 'input',
+    message: 'Which files should be deployed?',
+    default: '**'
+  },
+  {
     name: 'deployPath',
     type: 'input',
     message: 'Where in the bucket should the files be deployed?',
     default: '/'
+  },
+  {
+    name: 'acl',
+    type: 'list',
+    choices: ['private', 'public-read', 'public-read-write', 'aws-exec-read', 'authenticated-read', 'bucket-owner-read', 'bucket-owner-full-control'],
+    message: 'Which Access Control List (ACL) setting should be applied to deployed files?',
+    default: 'public-read'
   },
   {
     name: 'pwa',
