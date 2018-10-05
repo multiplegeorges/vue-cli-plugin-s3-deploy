@@ -1,4 +1,5 @@
 const fs = require('fs')
+const path = require('path')
 
 module.exports = [
   {
@@ -7,14 +8,19 @@ module.exports = [
     message: 'How do you want to authenticate with AWS?',
     default: '0',
     choices: (_) => {
-      let credentials = fs.readFileSync(require('os').homedir() + '/.aws/credentials', 'utf8');
       let profileNames = ['Environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, etc.']
-      let profileNameRegexp = new RegExp(/^\[([0-9a-zA-Z\-]*)\]?/gm)
+      let credentialsPath = path.join(require('os').homedir(), '.aws', 'credentials')
 
-      match = profileNameRegexp.exec(credentials)
-      while (match != null) {
-        profileNames.push("Profile: " + match[1])
-        match = profileNameRegexp.exec(credentials);
+      if(fs.existsSync(credentialsPath)) {
+        let credentials = fs.readFileSync(credentialsPath, 'utf8');
+
+        let profileNameRegexp = new RegExp(/^\[([0-9a-zA-Z\-]*)\]?/gm)
+
+        match = profileNameRegexp.exec(credentials)
+        while (match != null) {
+          profileNames.push("Profile: " + match[1])
+          match = profileNameRegexp.exec(credentials);
+        }
       }
 
       return profileNames
