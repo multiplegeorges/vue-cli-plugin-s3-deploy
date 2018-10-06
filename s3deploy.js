@@ -12,6 +12,52 @@ function contentTypeFor (filename) {
   return mime.lookup(filename) || 'application/octet-stream'
 }
 
+async function createBucket(options) {
+
+  let createParams = {
+    Bucket: options.bucket,
+    ACL: options.acl,
+    CreateBucketConfiguration: {
+      LocationConstraint: options.region
+    }
+  }
+
+  // Create bucket
+  try {
+    S3.createBucket(createParams).promise()
+    info(`Created Bucket: ${options.bucket} in Region: ${options.region}`)
+  } catch (createErr) {
+    error(`Bucket: ${options.bucket} could not be created. AWS Error: ${createErr.toString()}`)
+  }
+}
+
+async function enableStaticHosting(options) {
+  let staticParams = {
+    Bucket: options.bucket,
+    WebsiteConfiguration: {
+      ErrorDocument: {
+        Key: options.staticErrorPage
+      },
+      IndexDocument: {
+        Suffix: options.staticIndexPage
+      }
+    }
+  }
+
+  // use custom WebsiteConfiguration if set
+  if (options.staticWebsiteConfiguration) {
+    staticParams.WebsiteConfiguration = options.staticWebsiteConfiguration
+  }
+
+  // enable static hosting
+  try {
+    return await S3.putBucketWebsite(staticParams).promise()
+  } catch (staticErr) {
+    error(`Static Website Hosting could not be enabled on bucket: ${options.bucket}. AWS Error: ${staticErr.toString()}`)
+    return false
+  }
+}
+
 async function bucketExists (options) {
   let headParams = { Bucket: options.bucket }
   let bucketExists = false
@@ -23,47 +69,11 @@ async function bucketExists (options) {
   }
 
   if (!bucketExists && options.createBucket) {
-    let createParams = {
-      Bucket: options.bucket,
-      ACL: options.acl,
-      CreateBucketConfiguration: {
-        LocationConstraint: options.region
-      }
-    }
-
-    // Create bucket
-    try {
-      bucketExists = await S3.createBucket(createParams).promise()
-      info(`Created Bucket: ${options.bucket} in Region: ${options.region}`)
-    } catch (createErr) {
-      error(`Bucket: ${options.bucket} could not be created. AWS Error: ${createErr.toString()}`)
-    }
+    bucketExists = createBucket(options)
   }
 
   if (bucketExists && options.staticHosting) {
-    let staticParams = {
-      Bucket: options.bucket,
-      WebsiteConfiguration: {
-        ErrorDocument: {
-          Key: options.staticErrorPage
-        },
-        IndexDocument: {
-          Suffix: options.staticIndexPage
-        }
-      }
-    }
-
-    // use custom WebsiteConfiguration if set
-    if (options.staticWebsiteConfiguration) {
-      staticParams.WebsiteConfiguration = options.staticWebsiteConfiguration
-    }
-
-    // enable static hosting
-    try {
-      await S3.putBucketWebsite(staticParams).promise()
-    } catch (staticErr) {
-      error(`Static Website Hosting could not be enabled on bucket: ${options.bucket}. AWS Error: ${staticErr.toString()}`)
-    }
+    enableStaticHosting(options)
   }
 
   return bucketExists
