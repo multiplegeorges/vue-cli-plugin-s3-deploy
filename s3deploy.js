@@ -24,10 +24,11 @@ async function createBucket(options) {
 
   // Create bucket
   try {
-    S3.createBucket(createParams).promise()
     info(`Created Bucket: ${options.bucket} in Region: ${options.region}`)
+    return await S3.createBucket(createParams).promise()
   } catch (createErr) {
     error(`Bucket: ${options.bucket} could not be created. AWS Error: ${createErr.toString()}`)
+    return false
   }
 }
 
@@ -51,10 +52,10 @@ async function enableStaticHosting(options) {
 
   // enable static hosting
   try {
-    return await S3.putBucketWebsite(staticParams).promise()
+    await S3.putBucketWebsite(staticParams).promise()
+    info(`Static Hosting enabled.`)
   } catch (staticErr) {
     error(`Static Website Hosting could not be enabled on bucket: ${options.bucket}. AWS Error: ${staticErr.toString()}`)
-    return false
   }
 }
 
