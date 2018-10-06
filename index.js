@@ -40,13 +40,12 @@ module.exports = (api, configOptions) => {
 
     // parse and correct for boolbean vars passed as strings
     Object.keys(options).forEach(key => {
-      let option = options[key]
-      if (!option) return
-      let optionStr = option.toString().toLowerCase().trim()
+      if (!options[key]) return
+      let optionStr = options[key].toString().toLowerCase().trim()
       if (optionStr === 'true') {
-        option = true
+        options[key] = true
       } else if (optionStr === 'false') {
-        option = false
+        options[key] = false
       }
     })
 
