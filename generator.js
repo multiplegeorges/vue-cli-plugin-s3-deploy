@@ -7,6 +7,7 @@ module.exports = (api, options, rootOptions) => {
 
   // Set some defaults
   // Override these in a .env file or in vue.config.js
+  options.awsProfile = 'default'
   options.region = 'us-west-1'
   options.createBucket = false
   options.staticHosting = false
