@@ -12,27 +12,25 @@ function contentTypeFor (filename) {
   return mime.lookup(filename) || 'application/octet-stream'
 }
 
-async function createBucket(options) {
-
+async function createBucket (options) {
   let createParams = {
     Bucket: options.bucket,
-    ACL: options.acl,
-    CreateBucketConfiguration: {
-      LocationConstraint: options.region
-    }
+    ACL: options.acl
   }
 
   // Create bucket
   try {
-    info(`Created Bucket: ${options.bucket} in Region: ${options.region}`)
-    return await S3.createBucket(createParams).promise()
+    await S3.createBucket(createParams).promise()
   } catch (createErr) {
-    error(`Bucket: ${options.bucket} could not be created. AWS Error: ${createErr.toString()}`)
+    error(`Bucket: ${options.bucket} could not be created. AWS Error: ${createErr.toString()}.`)
     return false
   }
+
+  info(`Bucket: ${options.bucket} created.`)
+  return true
 }
 
-async function enableStaticHosting(options) {
+async function enableStaticHosting (options) {
   let staticParams = {
     Bucket: options.bucket,
     WebsiteConfiguration: {
@@ -53,9 +51,9 @@ async function enableStaticHosting(options) {
   // enable static hosting
   try {
     await S3.putBucketWebsite(staticParams).promise()
-    info(`Static Hosting enabled.`)
+    info(`Static Hosting is enabled.`)
   } catch (staticErr) {
-    error(`Static Website Hosting could not be enabled on bucket: ${options.bucket}. AWS Error: ${staticErr.toString()}`)
+    error(`Static Hosting could not be enabled on bucket: ${options.bucket}. AWS Error: ${staticErr.toString()}.`)
   }
 }
 
@@ -65,16 +63,25 @@ async function bucketExists (options) {
 
   try {
     bucketExists = await S3.headBucket(headParams).promise()
+    info(`Bucket:'${options.bucket}' was found.`)
   } catch (headErr) {
-    error(`Bucket: ${options.bucket} does not exist. AWS Error: ${headErr.toString()}`)
-  }
-
-  if (!bucketExists && options.createBucket) {
-    bucketExists = createBucket(options)
+    let errStr = headErr.toString().toLowerCase()
+    if (errStr.indexOf('forbidden') > -1) {
+      error(`Bucket: '${options.bucket}' was found, but you do not have permission to access it.`)
+    } else if (errStr.indexOf('notfound') > -1) {
+      if (options.createBucket) {
+        info(`Bucket:'${options.bucket}' was not found, attempting to create it..`)
+        bucketExists = await createBucket(options)
+      } else {
+        error(`Bucket: '${options.bucket}' was not found.`)
+      }
+    } else {
+      error(`Could not verify that bucket: ${options.bucket} exists. AWS Error: ${headErr}.`)
+    }
   }
 
   if (bucketExists && options.staticHosting) {
-    enableStaticHosting(options)
+    await enableStaticHosting(options)
   }
 
   return bucketExists
@@ -123,7 +130,14 @@ function * generateFilePromises (options) {
   options.fullAssetPath = path.join(options.cwd, options.assetPath) + path.sep
   options.fileList = getAllFiles(options)
 
-  info(`Deploying ${options.fileList.length} assets from ${options.fullAssetPath} to s3://${options.bucket}/`)
+  let remotePath = `https://${options.bucket}.s3-website-${options.region}.amazonaws.com/`
+  if (options.staticHosting) {
+    remotePath = `https://s3-${options.region}.amazonaws.com/${options.bucket}/`
+  }
+
+  info(`Deploying ${options.fileList.length} assets.`)
+  info(`From: ${options.fullAssetPath}`)
+  info(`To: ${remotePath}`)
 
   for (let i = 0; i < options.fileList.length; i++) {
     yield addFilePromise(options, i)
@@ -165,14 +179,14 @@ async function addFilePromise (options, i) {
     info(`${count} Uploaded ${fullFileKey}${pwaStr}.`)
   } catch (uploadResultErr) {
     // pass full error with details back to promisePool callback
-    throw new Error(`${count} Upload failed: ${fullFileKey}\n${uploadResultErr.toString()}`)
+    throw new Error(`${count} Upload failed: ${fullFileKey}. AWS Error: ${uploadResultErr.toString()}.`)
   }
 }
 
 module.exports = async (options, api) => {
   info(`Options: ${JSON.stringify(options)}`)
 
-  let aws_config = {
+  let awsConfig = {
     region: options.region,
     httpOptions: {
       connectTimeout: 30 * 1000,
@@ -180,23 +194,21 @@ module.exports = async (options, api) => {
     }
   }
 
-  if (options.awsProfile != 'default') {
-    let credentials = new AWS.SharedIniFileCredentials({ profile: options.awsProfile });
+  if (options.awsProfile.toString() !== 'default') {
+    let credentials = new AWS.SharedIniFileCredentials({ profile: options.awsProfile })
     await credentials.get((err) => {
       if (err) {
         error(err.toString())
       }
 
-      aws_config.credentials = credentials
+      awsConfig.credentials = credentials
     })
   }
 
-  AWS.config.update(aws_config)
+  AWS.config.update(awsConfig)
 
-  try {
-    await bucketExists(options)
-  } catch (existsErr) {
-    error(`Bucket ${options.bucket} does not exist.`)
+  if (await bucketExists(options) === false) {
+    error('Deployment terminated.')
     return
   }
 
@@ -205,13 +217,13 @@ module.exports = async (options, api) => {
 
   try {
     await uploadPool.start()
-    info('Deploy complete.')
+    info('Deployment complete.')
 
     if (options.enableCloudfront) {
       invalidateDistribution(options)
     }
   } catch (uploadErr) {
-    error(`Deploy completed with errors.`)
+    error(`Deployment completed with errors.`)
     error(`${uploadErr.toString()}`)
   }
 }
