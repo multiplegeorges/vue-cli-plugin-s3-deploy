@@ -11,21 +11,21 @@ module.exports = [
       let profileNames = ['Environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, etc.']
       let credentialsPath = path.join(require('os').homedir(), '.aws', 'credentials')
 
-      if(fs.existsSync(credentialsPath)) {
-        let credentials = fs.readFileSync(credentialsPath, 'utf8');
+      if (fs.existsSync(credentialsPath)) {
+        let credentials = fs.readFileSync(credentialsPath, 'utf8')
 
-        let profileNameRegexp = new RegExp(/^\[([0-9a-zA-Z\-]*)\]?/gm)
+        let profileNameRegexp = new RegExp(/^\[([0-9a-zA-Z-]*)]?/gm)
 
-        match = profileNameRegexp.exec(credentials)
+        let match = profileNameRegexp.exec(credentials)
         while (match != null) {
-          profileNames.push("Profile: " + match[1])
-          match = profileNameRegexp.exec(credentials);
+          profileNames.push('Profile: ' + match[1])
+          match = profileNameRegexp.exec(credentials)
         }
       }
 
       return profileNames
     },
-    filter: (answer) => {
+    filter: answer => {
       if (answer.startsWith('Environment variables:')) {
         return 'default'
       } else {
