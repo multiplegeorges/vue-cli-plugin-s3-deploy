@@ -52,8 +52,8 @@ module.exports = async (options, api) => {
 
       let filename = fileList.pop()
       let fileStream = fs.readFileSync(filename)
-      let fileKey = filename.replace(fullAssetPath, '')
-
+      let fileKey = filename.replace(fullAssetPath, '').replace('\\', '/')
+     
       let promise = new Promise((resolve, reject) => {
         let fullFileKey = `${deployPath}${fileKey}`
 
