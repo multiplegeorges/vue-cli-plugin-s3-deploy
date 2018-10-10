@@ -3,6 +3,8 @@ const {
   warn
 } = require('@vue/cli-shared-utils')
 
+const { pluginVersion } = require('./version')
+
 process.on('unhandledRejection', (message) => {
   error(message)
   process.exit(1)
@@ -14,6 +16,14 @@ module.exports = (api, configOptions) => {
     usage: 'vue-cli-service s3-deploy'
   }, (_) => {
     let options = configOptions.pluginOptions.s3Deploy
+    console.log(JSON.stringify(options))
+
+    if (pluginVersion !== options.pluginVersion) {
+      error('Configuration is out of date.')
+      error(`Config: ${options.pluginVersion} Plugin: ${pluginVersion}`)
+      error('Run `vue invoke s3-deploy`')
+      return
+    }
 
     // Check for environment overrides of the options in vue.config.js.
     options.region = process.env.VUE_APP_S3D_REGION || options.region
@@ -41,10 +51,11 @@ module.exports = (api, configOptions) => {
     // parse and correct for boolbean vars passed as strings
     Object.keys(options).forEach(key => {
       if (!options[key]) return
-      let optionStr = options[key].toString().toLowerCase().trim()
-      if (optionStr === 'true') {
+
+      let value = options[key].toString().toLowerCase().trim()
+      if (value === 'true') {
         options[key] = true
-      } else if (optionStr === 'false') {
+      } else if (value === 'false') {
         options[key] = false
       }
     })

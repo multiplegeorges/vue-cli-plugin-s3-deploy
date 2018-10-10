@@ -63,20 +63,20 @@ async function bucketExists (options) {
 
   try {
     bucketExists = await S3.headBucket(headParams).promise()
-    info(`Bucket:'${options.bucket}' was found.`)
+    info(`Bucket: ${options.bucket} exists.`)
   } catch (headErr) {
     let errStr = headErr.toString().toLowerCase()
     if (errStr.indexOf('forbidden') > -1) {
-      error(`Bucket: '${options.bucket}' was found, but you do not have permission to access it.`)
+      error(`Bucket: ${options.bucket} exists, but you do not have permission to access it.`)
     } else if (errStr.indexOf('notfound') > -1) {
       if (options.createBucket) {
-        info(`Bucket:'${options.bucket}' was not found, attempting to create it..`)
+        info(`Bucket: ${options.bucket} does not exist, attempting to create.`)
         bucketExists = await createBucket(options)
       } else {
-        error(`Bucket: '${options.bucket}' was not found.`)
+        error(`Bucket: ${options.bucket} does not exist.`)
       }
     } else {
-      error(`Could not verify that bucket: ${options.bucket} exists. AWS Error: ${headErr}.`)
+      error(`Could not verify that bucket ${options.bucket} exists. AWS Error: ${headErr}.`)
     }
   }
 
@@ -87,8 +87,8 @@ async function bucketExists (options) {
   return bucketExists
 }
 
-function getAllFiles (options) {
-  return globby.sync(options.assetMatch, { cwd: options.fullAssetPath }).map(file => path.join(options.fullAssetPath, file))
+function getAllFiles (pattern, assetPath) {
+  return globby.sync(pattern, { cwd: assetPath }).map(file => path.join(assetPath, file))
 }
 
 async function invalidateDistribution (options) {
@@ -125,44 +125,16 @@ async function invalidateDistribution (options) {
   stopSpinner()
 }
 
-function * generateFilePromises (options) {
-  options.cwd = process.cwd()
-  options.fullAssetPath = path.join(options.cwd, options.assetPath) + path.sep
-  options.fileList = getAllFiles(options)
-
-  let remotePath = `https://${options.bucket}.s3-website-${options.region}.amazonaws.com/`
-  if (options.staticHosting) {
-    remotePath = `https://s3-${options.region}.amazonaws.com/${options.bucket}/`
-  }
-
-  info(`Deploying ${options.fileList.length} assets.`)
-  info(`From: ${options.fullAssetPath}`)
-  info(`To: ${remotePath}`)
-
-  for (let i = 0; i < options.fileList.length; i++) {
-    yield addFilePromise(options, i)
-  }
-}
-
-async function addFilePromise (options, i) {
-  let filename = options.fileList[i]
-  let fileStream = fs.readFileSync(filename)
+async function uploadFile (filename, fileBody, options) {
   let fileKey = filename.replace(options.fullAssetPath, '').replace(/\\/g, '/')
   let pwaSupport = options.pwa && options.pwaFiles.split(',').indexOf(fileKey) > -1
-  let deployPath = options.deployPath
-
-  // We don't need a leading slash for root deploys on S3.
-  if (deployPath.startsWith('/')) deployPath = deployPath.slice(1, deployPath.length)
-  // But we do need to make sure there's a trailing one on the path.
-  if (!deployPath.endsWith('/') && deployPath.length > 1) deployPath = deployPath + '/'
-
-  let fullFileKey = `${deployPath}${fileKey}`
+  let fullFileKey = `${options.deployPath}${fileKey}`
 
   let uploadParams = {
     Bucket: options.bucket,
     Key: fileKey,
     ACL: options.acl,
-    Body: fileStream,
+    Body: fileBody,
     ContentType: contentTypeFor(fileKey)
   }
 
@@ -170,16 +142,11 @@ async function addFilePromise (options, i) {
     uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
   }
 
-  let uploadOptions = { partSize: (5 * 1024 * 1024), queueSize: 4 }
-  let count = `(${i + 1}/${options.fileList.length})`
-  let pwaStr = pwaSupport ? ' with cache disabled for PWA' : ''
-
   try {
-    await S3.upload(uploadParams, uploadOptions).promise()
-    info(`${count} Uploaded ${fullFileKey}${pwaStr}.`)
+    await S3.upload(uploadParams, options.uploadOptions).promise()
   } catch (uploadResultErr) {
     // pass full error with details back to promisePool callback
-    throw new Error(`${count} Upload failed: ${fullFileKey}. AWS Error: ${uploadResultErr.toString()}.`)
+    throw new Error(`(${options.uploadCount}/${options.uploadTotal}) Upload failed: ${fullFileKey}. AWS Error: ${uploadResultErr.toString()}.`)
   }
 }
 
@@ -212,8 +179,54 @@ module.exports = async (options, api) => {
     return
   }
 
-  const promiseIterator = generateFilePromises(options)
-  const uploadPool = new PromisePool(promiseIterator, parseInt(options.uploadConcurrency, 10))
+  options.uploadOptions = { partSize: (5 * 1024 * 1024), queueSize: 4 }
+
+  let fullAssetPath = path.join(process.cwd(), options.assetPath) + path.sep // path.sep appends a trailing / or \ depending on platform.
+  let fileList = getAllFiles(options.assetMatch, fullAssetPath)
+
+  let deployPath = options.deployPath
+  // We don't need a leading slash for root deploys on S3.
+  if (deployPath.startsWith('/')) deployPath = deployPath.slice(1, deployPath.length)
+  // But we do need to make sure there's a trailing one on the path.
+  if (!deployPath.endsWith('/') && deployPath.length > 0) deployPath = deployPath + '/'
+
+  let uploadCount = 0
+  let uploadTotal = fileList.length
+
+  let remotePath = `https://${options.bucket}.s3-website-${options.region}.amazonaws.com/`
+  if (options.staticHosting) {
+    remotePath = `https://s3-${options.region}.amazonaws.com/${options.bucket}/`
+  }
+
+  info(`Deploying ${fileList.length} assets from ${fullAssetPath} to ${remotePath}`)
+
+  let nextFile = () => {
+    if (fileList.length === 0) return null
+
+    let filename = fileList.pop()
+    let fileStream = fs.readFileSync(filename)
+    let fileKey = filename.replace(fullAssetPath, '').replace(/\\/g, '/')
+
+    let fullFileKey = `${deployPath}${fileKey}`
+
+    return uploadFile(fullFileKey, fileStream, options)
+    .then(() => {
+      uploadCount++
+
+      let pwaSupport = options.pwa && options.pwaFiles.split(',').indexOf(fileKey) > -1
+      let pwaStr = pwaSupport ? ' with cache disabled for PWA' : ''
+
+      info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}${pwaStr}`)
+      // resolve()
+    })
+    .catch((e) => {
+      error(`Upload failed: ${fullFileKey}`)
+      error(e.toString())
+      // reject(e)
+    })
+  }
+
+  const uploadPool = new PromisePool(nextFile, parseInt(options.uploadConcurrency, 10))
 
   try {
     await uploadPool.start()
