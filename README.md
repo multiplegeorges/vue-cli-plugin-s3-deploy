@@ -8,7 +8,8 @@ This [vue-cli](https://github.com/vuejs/vue-cli) plugin aims to make it easier t
 Supports:
 
 * Custom AWS regions
-* Support for AWS credential profiles
+* Support for AWS credential profiles and authentication via AWS environment variables
+* Support for S3 static site hosting
 * Concurrent uploads for improved deploy times
 * CloudFront distribution invalidation
 * Correct `Cache-Control` metadata for use with PWAs and Service Workers
@@ -41,15 +42,24 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
 
 ```js
 {
+    awsProfile: "Specifies the credentials profile to use. For env vars, omit or set to 'default'. (default: default)",
     region: "AWS region for the specified bucket (default: us-east-1)",
     bucket: "The S3 bucket name (required)",
+    createBucket: "Create the bucket if it doesn't exist (default: false)",
+    staticHosting: "Enable S3 static site hosting (default: false)",
+    staticIndexPage: "Sets the default index file (default: index.html)",
+    staticErrorPage: "Sets the default error file (default: error.html)",
     assetPath: "The path to the built assets (default: dist)",
+    assetMatch: "Regex matcher for asset to deploy (default: **)"
     deployPath: "Path to deploy the app in the bucket (default: /)",
+    acl: "Access control list permissions to apply in S3 (default: public-read)",
     uploadConcurrency: "The number of concurrent uploads to S3 (default: 3)",
-    pwa: "Sets max-age=0 for the PWA-related files specified",
-    enableCloudfront: "Enables support for Cloudfront distribution invalidation",
+    pwa: "Sets max-age=0 for the PWA-related files specified (default: false)",
+    pwaFiles: "Comma-separated list of files to treat as PWA files",
+    enableCloudfront: "Enables support for Cloudfront distribution invalidation (default: false)",
     cloudfrontId: "The ID of the distribution to invalidate",
-    cloudfrontMatchers: "A comma-separated list of paths to invalidate (default: /*)"
+    cloudfrontMatchers: "A comma-separated list of paths to invalidate (default: /*)",
+    uploadConcurrency: "Number of concurrent uploads (default: 5)"
 }
 ```
 
@@ -72,12 +82,23 @@ The .env file options are, with examples:
 
 ```sh
 VUE_APP_S3D_AWS_PROFILE=stagingadmin
-VUE_APP_S3D_BUCKET=staging-bucket
-VUE_APP_S3D_ASSET_PATH=dist/staging
-VUE_APP_S3D_DEPLOY_PATH=/app-staging
 VUE_APP_S3D_REGION=staging-aws-east-1
-VUE_APP_S3D_PWA=service-worker-stage.js,index.html
+VUE_APP_S3D_BUCKET=staging-bucket
+VUE_APP_S3D_CREATE_BUCKET=true
 VUE_APP_S3D_UPLOAD_CONCURRENCY=5
+
+VUE_APP_S3D_STATIC_HOSTING=true
+VUE_APP_S3D_STATIC_INDEX_PAGE=index.html
+VUE_APP_S3D_STATIC_ERROR_PAGE=error.html
+
+VUE_APP_S3D_ASSET_PATH=dist/staging
+VUE_APP_S3D_ASSET_MATCH=**
+VUE_APP_S3D_DEPLOY_PATH=/app-staging
+VUE_APP_S3D_ACL=public-read
+
+VUE_APP_S3D_PWA=true
+VUE_APP_S3D_PWA_FILES=service-worker-stage.js,index.html
+
 VUE_APP_S3D_ENABLE_CLOUDFRONT=true
 VUE_APP_S3D_CLOUDFRONT_ID=AIXXXXXXXX
 VUE_APP_S3D_CLOUDFRONT_MATCHERS=/index.html,/styles/*.css,/*.png
@@ -88,17 +109,20 @@ VUE_APP_S3D_CLOUDFRONT_MATCHERS=/index.html,/styles/*.css,/*.png
 Specifying AWS Credentials
 ---
 
-The AWS SDK will pick up the default credentials from your `~/.aws/credentials` file and from the environment variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`.
+The AWS SDK will pick up the specified credentials from your `~/.aws/credentials` file and from the environment variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`.
 
-To specify credentials other than `default` in `~/.aws/credentials`, change the command in `package.json` to:
-
-```js
-  "deploy": "AWS_PROFILE=other-profile-name vue-cli-service s3-deploy"
-```
+To specify credentials other than `default` in `~/.aws/credentials`, re-run `vue invoke s3-deploy` and select a different profile.
 
 
 Changelog
 ---
+
+**3.0.0**
+
+- Added support for S3 static site hosting configuration and setup
+- Corrected some Windows related bugs
+- Added pluginVersion to the configuration. This prompts users to re-invoke the `vue invoke`.
+- Bumped major version due to incompatibilities in the configuration options.
 
 **2.1.1**
 

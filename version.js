@@ -1,3 +1,3 @@
 module.exports = {
-  pluginVersion: '2.1.1'
+  pluginVersion: '3.0.0'
 }
