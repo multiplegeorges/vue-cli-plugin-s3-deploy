@@ -48,7 +48,7 @@ module.exports = [
   {
     name: 'createBucket',
     type: 'confirm',
-    message: 'Create bucket if does not exist?',
+    message: 'Create bucket if it does not exist?',
     default: true
   },
   {
