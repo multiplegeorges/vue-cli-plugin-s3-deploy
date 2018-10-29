@@ -6,7 +6,7 @@ const globby = require('globby')
 const AWS = require('aws-sdk')
 const PromisePool = require('es6-promise-pool')
 
-let S3;
+let S3
 
 function contentTypeFor (filename) {
   return mime.lookup(filename) || 'application/octet-stream'
@@ -87,8 +87,10 @@ async function bucketExists (options) {
   return bucketExists
 }
 
-function getAllFiles (pattern, assetPath) {
-  return globby.sync(pattern, { cwd: assetPath }).map(file => path.join(assetPath, file))
+function getAllFiles (pattern, assetPath, addFullPath) {
+  return globby.sync(pattern, { cwd: assetPath }).map(file => {
+    return addFullPath ? path.join(assetPath, file) : file
+  })
 }
 
 async function invalidateDistribution (options) {
@@ -127,7 +129,6 @@ async function invalidateDistribution (options) {
 
 async function uploadFile (filename, fileBody, options) {
   let fileKey = filename.replace(options.fullAssetPath, '').replace(/\\/g, '/')
-  let pwaSupport = options.pwa && options.pwaFiles.split(',').indexOf(fileKey) > -1
   let fullFileKey = `${options.deployPath}${fileKey}`
 
   let uploadParams = {
@@ -138,7 +139,7 @@ async function uploadFile (filename, fileBody, options) {
     ContentType: contentTypeFor(fileKey)
   }
 
-  if (pwaSupport) {
+  if (options.pwa && options.pwaFileList.indexOf(fileKey) > -1) {
     uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
   }
 
@@ -183,7 +184,8 @@ module.exports = async (options, api) => {
   options.uploadOptions = { partSize: (5 * 1024 * 1024), queueSize: 4 }
 
   let fullAssetPath = path.join(process.cwd(), options.assetPath) + path.sep // path.sep appends a trailing / or \ depending on platform.
-  let fileList = getAllFiles(options.assetMatch, fullAssetPath)
+  let fileList = getAllFiles(options.assetMatch, fullAssetPath, true)
+  options.pwaFileList = getAllFiles(options.pwaFiles, fullAssetPath)
 
   let deployPath = options.deployPath
   // We don't need a leading slash for root deploys on S3.
@@ -211,20 +213,23 @@ module.exports = async (options, api) => {
     let fullFileKey = `${deployPath}${fileKey}`
 
     return uploadFile(fullFileKey, fileStream, options)
-    .then(() => {
-      uploadCount++
+      .then(() => {
+        uploadCount++
 
-      let pwaSupport = options.pwa && options.pwaFiles.split(',').indexOf(fileKey) > -1
-      let pwaStr = pwaSupport ? ' with cache disabled for PWA' : ''
+        let feedbackStr = `(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}`
 
-      info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}${pwaStr}`)
+        if (options.pwa && options.pwaFileList.indexOf(fileKey) > -1) {
+          feedbackStr += ' (with cache disabled for PWA)'
+        }
+
+        info(feedbackStr)
       // resolve()
-    })
-    .catch((e) => {
-      error(`Upload failed: ${fullFileKey}`)
-      error(e.toString())
+      })
+      .catch((e) => {
+        error(`Upload failed: ${fullFileKey}`)
+        error(e.toString())
       // reject(e)
-    })
+      })
   }
 
   const uploadPool = new PromisePool(nextFile, parseInt(options.uploadConcurrency, 10))

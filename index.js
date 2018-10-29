@@ -16,7 +16,6 @@ module.exports = (api, configOptions) => {
     usage: 'vue-cli-service s3-deploy'
   }, (_) => {
     let options = configOptions.pluginOptions.s3Deploy
-    console.log(JSON.stringify(options))
 
     if (pluginVersion !== options.pluginVersion) {
       error('Configuration is out of date.')
@@ -48,10 +47,13 @@ module.exports = (api, configOptions) => {
     options.cloudfrontId = process.env.VUE_APP_S3D_CLOUDFRONT_ID || options.cloudfrontId
     options.cloudfrontMatchers = process.env.VUE_APP_S3D_CLOUDFRONT_MATCHERS || options.cloudfrontMatchers
 
-    // parse and correct for boolbean vars passed as strings
     Object.keys(options).forEach(key => {
       if (!options[key]) return
 
+      // cleanup pwa file match string and convert to array
+      if (key === 'pwaFiles') options.pwaFiles = options.pwaFiles.replace(/\s/g, '').split(',')
+
+      // parse and correct for boolbean vars passed as strings
       let value = options[key].toString().toLowerCase().trim()
       if (value === 'true') {
         options[key] = true
