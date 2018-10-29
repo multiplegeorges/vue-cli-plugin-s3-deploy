@@ -64,6 +64,8 @@ module.exports = (api, configOptions) => {
 
     if (!options.bucket) {
       error('Bucket name must be specified with `bucket` in vue.config.js!')
+    } else if (!options.bucket.match(/(?=^.{3,63}$)(?!^(\d+\.)+\d+$)(^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$)/g)) {
+      error('Bucket name must use only lowercase alpha nummeric characters, dots and hyphens. see https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html')
     } else {
       if (options.pwa && !options.pwaFiles) {
         warn('Option pwa is set but no files specified! Defaulting to: service-worker.js')

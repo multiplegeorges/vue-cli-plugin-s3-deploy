@@ -43,7 +43,15 @@ module.exports = [
     name: 'bucket',
     type: 'input',
     message: 'Name of the S3 bucket:',
-    validate: input => input !== '' ? true : 'A bucket name is required.'
+    validate: input => {
+      if (input === '') {
+        return 'A bucket name is required.'
+      } else if (!input.match(/(?=^.{3,63}$)(?!^(\d+\.)+\d+$)(^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$)/g)) {
+        return 'Bucket name is invalid; use lowercase alpha nummeric characters, dots and hyphens only. see https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html'
+      } else {
+        return true
+      }
+    }
   },
   {
     name: 'createBucket',
