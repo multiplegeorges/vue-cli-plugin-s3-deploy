@@ -120,9 +120,10 @@ async function invalidateDistribution (options) {
     error(`Code: ${err.code}`)
     error(`Message: ${err.message}`)
     error(`AWS Request ID: ${err.requestId}`)
+    throw err
+  } finally {
+    stopSpinner()
   }
-
-  stopSpinner()
 }
 
 async function uploadFile (filename, fileBody, options) {
@@ -176,7 +177,7 @@ module.exports = async (options, api) => {
 
   if (await bucketExists(options) === false) {
     error('Deployment terminated.')
-    return
+    exit(1)
   }
 
   options.uploadOptions = { partSize: (5 * 1024 * 1024), queueSize: 4 }
@@ -230,13 +231,20 @@ module.exports = async (options, api) => {
 
   try {
     await uploadPool.start()
-    info('Deployment complete.')
 
     if (options.enableCloudfront) {
-      invalidateDistribution(options)
+        invalidateDistribution(options)
     }
+    if (uploadCount !== uploadTotal) {
+        // Try to invalidate the distribution first and then check for uploaded file count.
+        throw new Error(`Not all files were uploaded. ${uploadCount} out of ${uploadTotal} files were uploaded.`);
+    }
+    // Only output this when the invalidation was successful as well.
+    info('Deployment complete.')
   } catch (uploadErr) {
     error(`Deployment completed with errors.`)
     error(`${uploadErr.toString()}`)
+    exit(1)
   }
+  exit(0)
 }
