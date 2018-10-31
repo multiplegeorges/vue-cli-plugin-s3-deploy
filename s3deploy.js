@@ -246,5 +246,4 @@ module.exports = async (options, api) => {
     error(`${uploadErr.toString()}`)
     exit(1)
   }
-  exit(0)
 }
