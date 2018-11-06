@@ -6,7 +6,7 @@ const globby = require('globby')
 const AWS = require('aws-sdk')
 const PromisePool = require('es6-promise-pool')
 
-const S3 = new AWS.S3()
+let S3;
 
 function contentTypeFor (filename) {
   return mime.lookup(filename) || 'application/octet-stream'
@@ -173,6 +173,7 @@ module.exports = async (options, api) => {
   }
 
   AWS.config.update(awsConfig)
+  S3 = AWS.S3()
 
   if (await bucketExists(options) === false) {
     error('Deployment terminated.')
