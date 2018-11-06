@@ -1,8 +1,12 @@
-import AWS from 'aws-sdk'
 import path from 'path'
 import globby from 'globby'
-import Bucket from './bucket'
+import fs from 'fs'
+import { info, error } from '@vue/cli-shared-utils'
+
+import AWS from 'aws-sdk'
 import PromisePool from 'es6-promise-pool'
+
+import Bucket from './bucket'
 
 class Deployer {
   constructor (config) {
@@ -14,11 +18,6 @@ class Deployer {
         connectTimeout: 30 * 1000,
         timeout: 120 * 1000
       }
-    }
-
-    config.uploadOptions = {
-      partSize: (5 * 1024 * 1024),
-      queueSize: 4
     }
 
     // path.sep appends a trailing / or \ depending on platform.
@@ -49,6 +48,7 @@ class Deployer {
 
     AWS.config.update(this.config.awsConfig)
     this.connection = new AWS.S3()
+    info('Connection to S3 created.')
   }
 
   async run () {
@@ -56,6 +56,7 @@ class Deployer {
       this.config.options.bucket,
       {
         fullAssetPath: this.config.fullAssetPath,
+        deployPath: this.config.deployPath,
         createBucket: this.config.options.createBucket,
         acl: this.config.options.acl,
         staticErrorPage: this.config.options.staticErrorPage,
@@ -78,14 +79,15 @@ class Deployer {
     this.uploadCount = 0
     this.uploadTotal = this.config.fileList.length
 
-    const uploadPool = new PromisePool(this.uploadNextFile, parseInt(this.config.options.uploadConcurrency, 10))
+    const uploadPool = new PromisePool(this.uploadNextFile.bind(this), parseInt(this.config.options.uploadConcurrency, 10))
 
     try {
       await uploadPool.start()
+
       info('Deployment complete.')
 
-      if (options.enableCloudfront) {
-        invalidateDistribution(options)
+      if (this.config.options.enableCloudfront) {
+        this.invalidateDistribution()
       }
     } catch (uploadErr) {
       error(`Deployment encountered errors.`)
@@ -93,26 +95,27 @@ class Deployer {
     }
   }
 
-  async uploadNextFile () {
-    if (this.config.fileList.length === 0) return null
+  uploadNextFile () {
+    if (this.config.fileList.length === 0) {
+      return null
+    }
 
     let filename = this.config.fileList.pop()
     let fileStream = fs.readFileSync(filename)
-    let fileKey = filename.replace(fullAssetPath, '').replace(/\\/g, '/')
+    let fileKey = filename.replace(this.config.fullAssetPath, '').replace(/\\/g, '/')
     let fullFileKey = `${this.config.deployPath}${fileKey}`
     let pwaSupportForFile = this.config.options.pwa && this.config.options.pwaFiles.split(',').indexOf(fileKey) > -1
 
     try {
-      await this.bucket.uploadFile(fullFileKey, fileStream, {
+      return this.bucket.uploadFile(fullFileKey, fileStream, {
         pwa: pwaSupportForFile
+      }).then(() => {
+        this.uploadCount++
+        let pwaMessage = pwaSupportForFile ? ' with cache disabled for PWA' : ''
+        info(`(${this.uploadCount}/${this.uploadTotal}) Uploaded ${fullFileKey}${pwaMessage}`)
       })
-
-      this.uploadCount++
-      let pwaMessage = pwaSupportForFile ? ' with cache disabled for PWA' : ''
-      info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}${pwaMessage}`)
     } catch (uploadError) {
-      error(`Upload failed for ${fullFileKey}`)
-      throw new Error(`Upload Error: ${uploadError.toString()}`)
+      throw new Error(`(${this.uploadCount}/${this.uploadTotal}) Upload failed: ${fullFileKey}. AWS Error: ${uploadError.toString()}.`)
     }
   }
 
@@ -127,8 +130,38 @@ class Deployer {
     return fixedPath
   }
 
-  exitWithError (message = 'Deployment terminated.') {
-    throw message
+  async invalidateDistribution () {
+    const cloudfront = new AWS.CloudFront()
+    const invalidationItems = this.config.options.cloudfrontMatchers.split(',')
+
+    let params = {
+      DistributionId: options.cloudfrontId,
+      InvalidationBatch: {
+        CallerReference: `vue-cli-plugin-s3-deploy-${Date.now().toString()}`,
+        Paths: {
+          Quantity: invalidationItems.length,
+          Items: invalidationItems
+        }
+      }
+    }
+
+    logWithSpinner(`Invalidating CloudFront distribution: ${this.config.options.cloudfrontId}`)
+
+    try {
+      let data = await cloudfront.createInvalidation(params).promise()
+
+      info(`Invalidation ID: ${data['Invalidation']['Id']}`)
+      info(`Status: ${data['Invalidation']['Status']}`)
+      info(`Call Reference: ${data['Invalidation']['InvalidationBatch']['CallerReference']}`)
+      info(`See your AWS console for on-going status on this invalidation.`)
+    } catch (err) {
+      error('Cloudfront Error!')
+      error(`Code: ${err.code}`)
+      error(`Message: ${err.message}`)
+      error(`AWS Request ID: ${err.requestId}`)
+    }
+
+    stopSpinner()
   }
 }
 

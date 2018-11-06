@@ -1,4 +1,5 @@
-const { error, warn, logWithSpinner, stopSpinner } = require('@vue/cli-shared-utils')
+import { error, warn, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
+import mime  from 'mime-types'
 
 class Bucket {
   constructor(name, options = {}, connection) {
@@ -78,32 +79,32 @@ class Bucket {
     }
   }
 
-  async uploadFile(fileKey, fileStream, uploadOptions) {
+  uploadFile(fileKey, fileStream, uploadOptions) {
     let uploadFileKey = fileKey.replace(this.options.fullAssetPath, '').replace(/\\/g, '/')
-    let fullFileKey = `${options.deployPath}${fileKey}`
+    let fullFileKey = `${this.options.deployPath}${uploadFileKey}`
 
     let uploadParams = {
-      Bucket: options.bucket,
-      Key: uploadFileKey,
-      ACL: options.acl,
+      Bucket: this.name,
+      Key: fullFileKey,
+      ACL: this.options.acl,
       Body: fileStream,
-      ContentType: contentTypeFor(fileKey)
+      ContentType: this.contentTypeFor(fileKey)
     }
 
     if (uploadOptions.pwa) {
       uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
     }
 
-    try {
-      await S3.upload(
-        uploadParams,
-        { partSize: (5 * 1024 * 1024), queueSize: 4 }
-      ).promise()
-    } catch (uploadResultErr) {
-      // pass full error with details back to promisePool callback
-      throw new Error(`(${options.uploadCount}/${options.uploadTotal}) Upload failed: ${fullFileKey}. AWS Error: ${uploadResultErr.toString()}.`)
-    }
+    return this.connection.upload(
+      uploadParams,
+      { partSize: (5 * 1024 * 1024), queueSize: 4 }
+    ).promise()
   }
+
+  contentTypeFor (filename) {
+    return mime.lookup(filename) || 'application/octet-stream'
+  }
+
 }
 
 export default Bucket

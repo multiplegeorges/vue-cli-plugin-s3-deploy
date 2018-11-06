@@ -1,4 +1,5 @@
 import '@babel/polyfill'
+import Deployer from './deployer'
 
 const {
   error,
@@ -7,8 +8,9 @@ const {
 
 import Configuration  from './configuration'
 
-process.on('unhandledRejection', (error) => {
-  error(JSON.stringify(error))
+process.on('unhandledRejection', (err) => {
+  console.log(err)
+  error(JSON.stringify(err))
   process.exit(1)
 })
 
@@ -28,7 +30,9 @@ module.exports = (api, configOptions) => {
         config.options.pwaFiles = 'service-worker.js'
       }
 
-      require('./s3deploy.js')(config)
+      let deployer = new Deployer(config)
+      deployer.openConnection()
+      deployer.run()
     }
   })
 }
