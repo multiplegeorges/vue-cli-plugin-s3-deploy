@@ -1,15 +1,16 @@
-const { pluginVersion } = require('./version')
+import { VERSION } from './configuration'
 
-module.exports = (api, options, rootOptions) => {
+const generatorFn = (api, options, rootOptions) => {
   api.extendPackage({
     scripts: {
       deploy: `vue-cli-service s3-deploy`
     }
   })
 
+  options.pluginVersion = VERSION
+
   // Override these in a .env file or in vue.config.js
   options.uploadConcurrency = 5
-  options.pluginVersion = pluginVersion
 
   api.extendPackage({
     vue: {
@@ -19,3 +20,5 @@ module.exports = (api, options, rootOptions) => {
     }
   })
 }
+
+export default generatorFn

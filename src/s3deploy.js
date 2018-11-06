@@ -6,8 +6,6 @@ const globby = require('globby')
 const AWS = require('aws-sdk')
 const PromisePool = require('es6-promise-pool')
 
-const S3 = new AWS.S3()
-
 function contentTypeFor (filename) {
   return mime.lookup(filename) || 'application/octet-stream'
 }
@@ -88,7 +86,7 @@ async function bucketExists (options) {
 }
 
 function getAllFiles (pattern, assetPath) {
-  return globby.sync(pattern, { cwd: assetPath }).map(file => path.join(assetPath, file))
+  return
 }
 
 async function invalidateDistribution (options) {
@@ -150,7 +148,7 @@ async function uploadFile (filename, fileBody, options) {
   }
 }
 
-module.exports = async (options, api) => {
+module.exports = async (config, api) => {
   info(`Options: ${JSON.stringify(options)}`)
 
   let awsConfig = {
@@ -174,6 +172,8 @@ module.exports = async (options, api) => {
 
   AWS.config.update(awsConfig)
 
+
+
   if (await bucketExists(options) === false) {
     error('Deployment terminated.')
     return
@@ -183,12 +183,6 @@ module.exports = async (options, api) => {
 
   let fullAssetPath = path.join(process.cwd(), options.assetPath) + path.sep // path.sep appends a trailing / or \ depending on platform.
   let fileList = getAllFiles(options.assetMatch, fullAssetPath)
-
-  let deployPath = options.deployPath
-  // We don't need a leading slash for root deploys on S3.
-  if (deployPath.startsWith('/')) deployPath = deployPath.slice(1, deployPath.length)
-  // But we do need to make sure there's a trailing one on the path.
-  if (!deployPath.endsWith('/') && deployPath.length > 0) deployPath = deployPath + '/'
 
   let uploadCount = 0
   let uploadTotal = fileList.length
@@ -200,7 +194,9 @@ module.exports = async (options, api) => {
 
   info(`Deploying ${fileList.length} assets from ${fullAssetPath} to ${remotePath}`)
 
-  let nextFile = () => {
+  // STOPPED HERE
+
+  let nextFile = async () => {
     if (fileList.length === 0) return null
 
     let filename = fileList.pop()
@@ -209,21 +205,17 @@ module.exports = async (options, api) => {
 
     let fullFileKey = `${deployPath}${fileKey}`
 
-    return uploadFile(fullFileKey, fileStream, options)
-    .then(() => {
-      uploadCount++
-
-      let pwaSupport = options.pwa && options.pwaFiles.split(',').indexOf(fileKey) > -1
-      let pwaStr = pwaSupport ? ' with cache disabled for PWA' : ''
-
-      info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}${pwaStr}`)
-      // resolve()
-    })
-    .catch((e) => {
-      error(`Upload failed: ${fullFileKey}`)
-      error(e.toString())
-      // reject(e)
-    })
+    try {
+      await uploadFile(fullFileKey, fileStream, options);
+      uploadCount++;
+      let pwaSupport = options.pwa && options.pwaFiles.split(',').indexOf(fileKey) > -1;
+      let pwaStr = pwaSupport ? ' with cache disabled for PWA' : '';
+      info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}${pwaStr}`);
+    }
+    catch (e) {
+      error(`Upload failed: ${fullFileKey}`);
+      error(e.toString());
+    }
   }
 
   const uploadPool = new PromisePool(nextFile, parseInt(options.uploadConcurrency, 10))

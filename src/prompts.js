@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-module.exports = [
+const prompts = [
   {
     name: 'awsProfile',
     type: 'list',
@@ -108,7 +108,7 @@ module.exports = [
     name: 'pwaFiles',
     type: 'input',
     message: 'Disable caching on which files (comma-separated)?',
-    default: 'service-worker.js',
+    default: 'index.html,service-worker.js,manifest.json',
     validate: input => input !== '' ? true : 'At least one file path is requires.',
     when: answers => answers.pwa === true
   },
@@ -130,8 +130,10 @@ module.exports = [
     name: 'cloudfrontMatchers',
     type: 'input',
     message: 'Enter a comma-separated list of paths to invalidate:',
-    default: '/*',
+    default: '/index.html,/service-worker.js,/manifest.json',
     when: answers => answers.enableCloudfront === true,
     validate: input => input !== '' ? true : 'At least one invalidation path is required. To invalidate all files, enter /* '
   }
 ]
+
+export default prompts
