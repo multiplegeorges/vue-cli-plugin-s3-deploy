@@ -173,7 +173,7 @@ module.exports = async (options, api) => {
   }
 
   AWS.config.update(awsConfig)
-  S3 = AWS.S3()
+  S3 = new AWS.S3()
 
   if (await bucketExists(options) === false) {
     error('Deployment terminated.')
