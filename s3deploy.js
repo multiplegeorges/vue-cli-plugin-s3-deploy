@@ -138,6 +138,10 @@ async function uploadFile (filename, fileBody, options) {
     ContentType: contentTypeFor(fileKey)
   }
 
+  if (options.cacheControl) {
+    uploadParams.CacheControl = options.cacheControl
+  }
+
   if (pwaSupport) {
     uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
   }
