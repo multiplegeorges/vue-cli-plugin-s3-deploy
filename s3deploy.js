@@ -11,6 +11,12 @@ const deployDir = 'dist-deploy';
 
 let S3;
 
+function mimeCharsetsLookup(mimeType, fallback) {
+  // the node-mime library removed this method in v 2.0. This is the replacement
+  // code for what was formerly mime.charsets.lookup
+  return (/^text\/|^application\/(javascript|json)/).test(mimeType) ? 'UTF-8' : fallback;
+}
+
 function contentTypeFor (filename) {
   return mime.lookup(filename) || 'application/octet-stream'
 }
@@ -134,6 +140,12 @@ async function invalidateDistribution (options) {
 
 async function uploadFile ({ fileKey, fileBody, options, gzip }) {
   const pwaSupport = options.pwa && options.pwaFiles.split(',').includes(fileKey)
+  let contentType = contentTypeFor(fileKey);
+  const encoding = mimeCharsetsLookup(contentType);
+
+  if (encoding) {
+    contentType = `${contentType}; charset=${encoding.toLowerCase()}`;
+  }
 
   let uploadParams = {
     Bucket: options.bucket,
@@ -244,11 +256,12 @@ module.exports = async (options, api) => {
       if (filesQueue.length === 0) return null
 
       const filePath = filesQueue.pop();
+      const outputPath = `${filePath}.gz`;
       const gzip = zlib.createGzip();
 
       return new Promise((resolve, reject) => {
         const input = fs.createReadStream(filePath);
-        const output = fs.createWriteStream(filePath);
+        const output = fs.createWriteStream(outputPath);
 
         input.pipe(gzip).pipe(output);
 
@@ -264,7 +277,7 @@ module.exports = async (options, api) => {
           resolve();
           info('✔  ' + filePath);
         });
-      });
+      }).then(() => fs.rename(outputPath, filePath));
     }, 10);
 
     try {
