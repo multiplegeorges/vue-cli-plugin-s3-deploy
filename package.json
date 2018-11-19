@@ -26,6 +26,7 @@
     "@vue/cli-shared-utils": "^3.0.0-rc.3",
     "aws-sdk": "^2.225.1",
     "es6-promise-pool": "^2.5.0",
+    "fs-extra": "^7.0.1",
     "globby": "^8.0.1",
     "mime-types": "^2.1.18"
   }

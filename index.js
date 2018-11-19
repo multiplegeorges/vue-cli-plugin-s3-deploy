@@ -47,6 +47,9 @@ module.exports = (api, configOptions) => {
 
     options.cacheControl = process.env.VUE_APP_S3D_CACHE_CONTROL || options.cacheControl
 
+    options.gzip = process.env.VUE_APP_S3D_GZIP || options.gzip
+    options.gzipFilePattern = process.env.VUE_APP_S3D_GZIP_FILE_PATTERN || options.gzipFilePattern
+
     options.enableCloudfront = process.env.VUE_APP_S3D_ENABLE_CLOUDFRONT || options.enableCloudfront
     options.cloudfrontId = process.env.VUE_APP_S3D_CLOUDFRONT_ID || options.cloudfrontId
     options.cloudfrontMatchers = process.env.VUE_APP_S3D_CLOUDFRONT_MATCHERS || options.cloudfrontMatchers

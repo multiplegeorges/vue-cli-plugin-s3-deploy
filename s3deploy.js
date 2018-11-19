@@ -1,10 +1,13 @@
 const { info, error, logWithSpinner, stopSpinner } = require('@vue/cli-shared-utils')
 const path = require('path')
-const fs = require('fs')
+const fs = require('fs-extra')
 const mime = require('mime-types')
 const globby = require('globby')
 const AWS = require('aws-sdk')
 const PromisePool = require('es6-promise-pool')
+const zlib = require('zlib');
+
+const deployDir = 'dist-deploy';
 
 let S3;
 
@@ -87,8 +90,12 @@ async function bucketExists (options) {
   return bucketExists
 }
 
-function getAllFiles (pattern, assetPath) {
-  return globby.sync(pattern, { cwd: assetPath }).map(file => path.join(assetPath, file))
+function getAllFiles (assetPath, pattern = '**') {
+  return globby.sync(pattern, { cwd: assetPath })
+    .map(file => ({
+      relative: file,
+      absolute: path.join(assetPath, file)
+    }));
 }
 
 async function invalidateDistribution (options) {
@@ -125,10 +132,8 @@ async function invalidateDistribution (options) {
   stopSpinner()
 }
 
-async function uploadFile (filename, fileBody, options) {
-  let fileKey = filename.replace(options.fullAssetPath, '').replace(/\\/g, '/')
-  let pwaSupport = options.pwa && options.pwaFiles.split(',').indexOf(fileKey) > -1
-  let fullFileKey = `${options.deployPath}${fileKey}`
+async function uploadFile ({ fileKey, fileBody, options, gzip }) {
+  const pwaSupport = options.pwa && options.pwaFiles.split(',').includes(fileKey)
 
   let uploadParams = {
     Bucket: options.bucket,
@@ -142,15 +147,52 @@ async function uploadFile (filename, fileBody, options) {
     uploadParams.CacheControl = options.cacheControl
   }
 
+  if (gzip) {
+    uploadParams.ContentEncoding = 'gzip'
+  }
+
   if (pwaSupport) {
     uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
   }
+
+  console.log('upload', { uploadParams });
 
   try {
     await S3.upload(uploadParams, options.uploadOptions).promise()
   } catch (uploadResultErr) {
     // pass full error with details back to promisePool callback
-    throw new Error(`(${options.uploadCount}/${options.uploadTotal}) Upload failed: ${fullFileKey}. AWS Error: ${uploadResultErr.toString()}.`)
+    throw new Error(`(${options.uploadCount}/${options.uploadTotal}) Upload failed: ${fileKey}. AWS Error: ${uploadResultErr.toString()}.`)
+  }
+}
+
+function getFullPath (dir) {
+  return path.join(process.cwd(), dir) + path.sep // path.sep appends a trailing / or \ depending on platform.
+}
+
+async function prepareDeploymentDirectory (assetPath, assetMatch) {
+  const fullAssetPath = getFullPath(assetPath)
+  const filesToCopy = getAllFiles(fullAssetPath, assetMatch)
+
+  const copyPool = new PromisePool(() => {
+    if (filesToCopy.length === 0) return null
+
+    const file = filesToCopy.pop()
+    const src = file.absolute
+    const dist = getFullPath(deployDir) + file.relative
+
+    return fs.copy(src, dist)
+  }, 10);
+
+  try {
+    info('Preparing deployment directory...');
+
+    await fs.emptyDir(getFullPath(deployDir));
+    await copyPool.start();
+
+    info('Deployment directory created.');
+  } catch (err) {
+    error('Something went wrong...')
+    error(err)
   }
 }
 
@@ -186,8 +228,53 @@ module.exports = async (options, api) => {
 
   options.uploadOptions = { partSize: (5 * 1024 * 1024), queueSize: 4 }
 
-  let fullAssetPath = path.join(process.cwd(), options.assetPath) + path.sep // path.sep appends a trailing / or \ depending on platform.
-  let fileList = getAllFiles(options.assetMatch, fullAssetPath)
+  await prepareDeploymentDirectory(options.assetPath, options.assetMatch);
+
+  const deployDirPath = getFullPath(deployDir);
+  const filesToDeploy = getAllFiles(deployDirPath);
+  let filesToGzip = [];
+
+  if (options.gzip) {
+    filesToGzip = getAllFiles(deployDirPath, options.gzipFilePattern)
+      .map(file => file.absolute);
+
+    const filesQueue = [...filesToGzip];
+
+    const gzipPool = new PromisePool(() => {
+      if (filesQueue.length === 0) return null
+
+      const filePath = filesQueue.pop();
+      const gzip = zlib.createGzip();
+
+      return new Promise((resolve, reject) => {
+        const input = fs.createReadStream(filePath);
+        const output = fs.createWriteStream(filePath);
+
+        input.pipe(gzip).pipe(output);
+
+        input.on('error', function(err){
+          reject(err);
+        });
+
+        output.on('error', function(err){
+          reject(err);
+        });
+
+        output.on('finish', function(){
+          resolve();
+          info('✔  ' + filePath);
+        });
+      });
+    }, 10);
+
+    try {
+      await gzipPool.start();
+      info('All files gzipped properly.');
+    } catch (err) {
+      error('Unexpected error');
+      error(err);
+    }
+  }
 
   let deployPath = options.deployPath
   // We don't need a leading slash for root deploys on S3.
@@ -196,25 +283,29 @@ module.exports = async (options, api) => {
   if (!deployPath.endsWith('/') && deployPath.length > 0) deployPath = deployPath + '/'
 
   let uploadCount = 0
-  let uploadTotal = fileList.length
+  let uploadTotal = filesToDeploy.length
 
   let remotePath = `https://${options.bucket}.s3-website-${options.region}.amazonaws.com/`
   if (options.staticHosting) {
     remotePath = `https://s3-${options.region}.amazonaws.com/${options.bucket}/`
   }
 
-  info(`Deploying ${fileList.length} assets from ${fullAssetPath} to ${remotePath}`)
+  info(`Deploying ${filesToDeploy.length} assets from ${deployDirPath} to ${remotePath}`)
 
-  let nextFile = () => {
-    if (fileList.length === 0) return null
+  const uploadPool = new PromisePool(() => {
+    if (filesToDeploy.length === 0) return null
 
-    let filename = fileList.pop()
+    let filename = filesToDeploy.pop().absolute
     let fileStream = fs.readFileSync(filename)
-    let fileKey = filename.replace(fullAssetPath, '').replace(/\\/g, '/')
-
+    let fileKey = filename.replace(deployDirPath, '').replace(/\\/g, '/')
     let fullFileKey = `${deployPath}${fileKey}`
 
-    return uploadFile(fullFileKey, fileStream, options)
+    return uploadFile({
+      fileKey: fullFileKey,
+      fileBody: fileStream,
+      options,
+      gzip: filesToGzip.includes(filename)
+    })
     .then(() => {
       uploadCount++
 
@@ -229,9 +320,7 @@ module.exports = async (options, api) => {
       error(e.toString())
       // reject(e)
     })
-  }
-
-  const uploadPool = new PromisePool(nextFile, parseInt(options.uploadConcurrency, 10))
+  }, parseInt(options.uploadConcurrency, 10))
 
   try {
     await uploadPool.start()
