@@ -29,5 +29,8 @@
     "fs-extra": "^7.0.1",
     "globby": "^8.0.1",
     "mime-types": "^2.1.18"
+  },
+  "devDependencies": {
+    "ora": "^3.0.0"
   }
 }
