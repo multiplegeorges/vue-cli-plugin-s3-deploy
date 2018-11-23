@@ -1,4 +1,4 @@
-const { info, error } = require('@vue/cli-shared-utils')
+const { info, error, done } = require('@vue/cli-shared-utils')
 const path = require('path')
 const fs = require('fs-extra')
 const mime = require('mime-types')
@@ -341,7 +341,7 @@ module.exports = async (options, api) => {
       let pwaSupport = options.pwa && options.pwaFiles.split(',').indexOf(fileKey) > -1
       let pwaStr = pwaSupport ? ' with cache disabled for PWA' : ''
 
-      info(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}${pwaStr}`)
+      done(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}${pwaStr}`)
       // resolve()
     })
     .catch((e) => {
@@ -352,9 +352,9 @@ module.exports = async (options, api) => {
   }, parseInt(options.uploadConcurrency, 10))
 
   try {
-    spinner.start(`Deploying ${filesToDeploy.length} assets from ${deployDirPath} to ${remotePath}`)
+    spinner.start(`Deploying ${uploadTotal} assets from ${deployDirPath} to ${remotePath}`)
     await uploadPool.start()
-    spinner.succeed(`All ${filesToDeploy.length} assets have been successfully deployed to ${remotePath}`)
+    spinner.succeed(`All ${uploadTotal} assets have been successfully deployed to ${remotePath}`)
 
     if (options.enableCloudfront) {
       invalidateDistribution(options)
