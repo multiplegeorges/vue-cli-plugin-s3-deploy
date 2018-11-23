@@ -1,5 +1,6 @@
 const {
   error,
+  exit,
   warn
 } = require('@vue/cli-shared-utils')
 
@@ -22,7 +23,7 @@ module.exports = (api, configOptions) => {
       error('Configuration is out of date.')
       error(`Config: ${options.pluginVersion} Plugin: ${pluginVersion}`)
       error('Run `vue invoke s3-deploy`')
-      return
+      exit(1)
     }
 
     // Check for environment overrides of the options in vue.config.js.
@@ -68,6 +69,7 @@ module.exports = (api, configOptions) => {
 
     if (!options.bucket) {
       error('Bucket name must be specified with `bucket` in vue.config.js!')
+      exit(1)
     } else {
       if (options.pwa && !options.pwaFiles) {
         warn('Option pwa is set but no files specified! Defaulting to: service-worker.js')

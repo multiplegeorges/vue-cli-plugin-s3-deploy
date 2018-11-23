@@ -175,6 +175,9 @@ async function invalidateDistribution (options) {
     error(`Code: ${err.code}`)
     error(`Message: ${err.message}`)
     error(`AWS Request ID: ${err.requestId}`)
+    throw err
+  } finally {
+    stopSpinner()
   }
 }
 
@@ -281,6 +284,7 @@ async function gzipFiles(filesToGzip) {
   } catch (err) {
     spinner.fail('Files haven\'t been gzipped properly.')
     error(err)
+    exit(1)
   }
 }
 
@@ -291,10 +295,11 @@ module.exports = async (options, api) => {
     spinner.succeed('AWS credentials confirmed')
   } catch (err) {
     spinner.fail('Setting up AWS failed.')
-    return error(err)
+    error(err)
+    exit(1)
   }
 
-  if (await bucketExists(options) === false) return
+  if (await bucketExists(options) === false) exit(1)
 
   options.uploadOptions = { partSize: (5 * 1024 * 1024), queueSize: 4 }
 
@@ -357,10 +362,17 @@ module.exports = async (options, api) => {
     spinner.succeed(`All ${uploadTotal} assets have been successfully deployed to ${remotePath}`)
 
     if (options.enableCloudfront) {
-      invalidateDistribution(options)
+        invalidateDistribution(options)
     }
+    if (uploadCount !== uploadTotal) {
+        // Try to invalidate the distribution first and then check for uploaded file count.
+        throw new Error(`Not all files were uploaded. ${uploadCount} out of ${uploadTotal} files were uploaded.`);
+    }
+    // Only output this when the invalidation was successful as well.
+    info('Deployment complete.')
   } catch (uploadErr) {
     spinner.fail('Deployment completed with errors.');
     error(`${uploadErr.toString()}`)
+    exit(1)
   }
 }
