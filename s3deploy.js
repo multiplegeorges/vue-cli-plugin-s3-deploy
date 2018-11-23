@@ -208,9 +208,7 @@ async function uploadFile ({ fileKey, fileBody, options, gzip }) {
   }
 
   try {
-    spinner.start(`Uploading: ${uploadParams.Key}`);
     await S3.upload(uploadParams, options.uploadOptions).promise()
-    spinner.clear();
   } catch (uploadResultErr) {
     // pass full error with details back to promisePool callback
     throw new Error(`(${options.uploadCount}/${options.uploadTotal}) Upload failed: ${fileKey}. AWS Error: ${uploadResultErr.toString()}.`)
@@ -329,6 +327,8 @@ module.exports = async (options, api) => {
     let fileKey = filename.replace(deployDirPath, '').replace(/\\/g, '/')
     let fullFileKey = `${bucketDeployPath}${fileKey}`
 
+    spinner.start(`Uploading: ${fullFileKey}`);
+
     return uploadFile({
       fileKey: fullFileKey,
       fileBody: fileStream,
@@ -341,11 +341,11 @@ module.exports = async (options, api) => {
       let pwaSupport = options.pwa && options.pwaFiles.split(',').indexOf(fileKey) > -1
       let pwaStr = pwaSupport ? ' with cache disabled for PWA' : ''
 
-      done(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}${pwaStr}`)
+      spinner.succeed(`(${uploadCount}/${uploadTotal}) Uploaded ${fullFileKey}${pwaStr}`)
       // resolve()
     })
     .catch((e) => {
-      error(`Upload failed: ${fullFileKey}`)
+      spinner.fail(`Upload failed: ${fullFileKey}`)
       error(e.toString())
       // reject(e)
     })
