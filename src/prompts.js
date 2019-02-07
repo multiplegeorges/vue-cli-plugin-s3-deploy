@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const prompts = [
+module.exports = [
   {
     name: 'awsProfile',
     type: 'list',
@@ -135,5 +135,3 @@ const prompts = [
     validate: input => input !== '' ? true : 'At least one invalidation path is required. To invalidate all files, enter /* '
   }
 ]
-
-export default prompts

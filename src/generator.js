@@ -1,6 +1,6 @@
 import { VERSION } from './configuration'
 
-const generatorFn = (api, options, rootOptions) => {
+module.exports = function (api, options, rootOptions) {
   api.extendPackage({
     scripts: {
       deploy: `vue-cli-service s3-deploy`
@@ -20,5 +20,3 @@ const generatorFn = (api, options, rootOptions) => {
     }
   })
 }
-
-export default generatorFn

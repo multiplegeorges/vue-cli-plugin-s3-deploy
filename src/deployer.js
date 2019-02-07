@@ -145,23 +145,27 @@ class Deployer {
       }
     }
 
-    logWithSpinner(`Invalidating CloudFront distribution: ${this.config.options.cloudfrontId}`)
-
     try {
+      logWithSpinner(`Invalidating CloudFront distribution: ${this.config.options.cloudfrontId}`)
+
       let data = await cloudfront.createInvalidation(params).promise()
 
       info(`Invalidation ID: ${data['Invalidation']['Id']}`)
       info(`Status: ${data['Invalidation']['Status']}`)
       info(`Call Reference: ${data['Invalidation']['InvalidationBatch']['CallerReference']}`)
       info(`See your AWS console for on-going status on this invalidation.`)
+
+      stopSpinner()
     } catch (err) {
-      error('Cloudfront Error!')
+      stopSpinner(false)
+
+      error('Cloudfront Error!!')
       error(`Code: ${err.code}`)
       error(`Message: ${err.message}`)
       error(`AWS Request ID: ${err.requestId}`)
-    }
 
-    stopSpinner()
+      throw new Error('Cloudfront invalidation failed!')
+    }
   }
 }
 

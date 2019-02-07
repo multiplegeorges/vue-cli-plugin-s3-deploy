@@ -17,7 +17,7 @@ class Configuration {
         return `
           Configuration is out of date.
           Config: ${err[0].context.value} Plugin: ${VERSION}
-          Run 'vue invoke s3 - deploy'
+          Run 'vue invoke s3-deploy'
         `
       }).required(),
       awsProfile: Joi.string().default('default'),
