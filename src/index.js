@@ -30,6 +30,8 @@ module.exports = (api, configOptions) => {
         config.options.pwaFiles = 'service-worker.js'
       }
 
+      if(process.env['S3D_DEBUG']) console.log(config.options)
+
       let deployer = new Deployer(config)
       deployer.openConnection()
       deployer.run()

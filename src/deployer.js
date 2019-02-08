@@ -1,7 +1,7 @@
 import path from 'path'
 import globby from 'globby'
 import fs from 'fs'
-import { info, error } from '@vue/cli-shared-utils'
+import { info, error, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
 
 import AWS from 'aws-sdk'
 import PromisePool from 'es6-promise-pool'
@@ -69,7 +69,9 @@ class Deployer {
     try {
       await this.bucket.validate()
     } catch (e) {
-      // Validation failed, so try to correct the error.
+      // Bucket validation failed, so try to correct the error, but
+      // let the error bubble up from here. We can't fix it.
+      // It's probably a permissions issue in AWS.
       await this.bucket.createBucket()
       if (this.options.staticHosting) await bucket.enableHosting()
     }
@@ -135,7 +137,7 @@ class Deployer {
     const invalidationItems = this.config.options.cloudfrontMatchers.split(',')
 
     let params = {
-      DistributionId: options.cloudfrontId,
+      DistributionId: this.config.options.cloudfrontId,
       InvalidationBatch: {
         CallerReference: `vue-cli-plugin-s3-deploy-${Date.now().toString()}`,
         Paths: {
