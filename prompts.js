@@ -86,6 +86,12 @@ module.exports = [
     default: '**'
   },
   {
+    name: 'allowDotMatching',
+    type: 'confirm',
+    message: 'Should files and directories that start with a dot be also deployed?',
+    default: false
+  },
+  {
     name: 'deployPath',
     type: 'input',
     message: 'Where in the bucket should the files be deployed?',

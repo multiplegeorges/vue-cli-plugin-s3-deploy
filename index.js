@@ -40,6 +40,7 @@ module.exports = (api, configOptions) => {
 
     options.assetPath = process.env.VUE_APP_S3D_ASSET_PATH || options.assetPath
     options.assetMatch = (process.env.VUE_APP_S3D_ASSET_MATCH || options.assetMatch)
+    options.allowDotMatching = (process.env.VUE_APP_S3D_ALLOW_DOT_MATCHING || options.allowDotMatching)
     options.deployPath = process.env.VUE_APP_S3D_DEPLOY_PATH || options.deployPath
     options.acl = process.env.VUE_APP_S3D_ACL || options.acl
 

@@ -126,8 +126,13 @@ async function bucketExists (options) {
   return bucketExists
 }
 
-function getAllFiles (assetPath, pattern = '**') {
-  return globby.sync(pattern, { cwd: assetPath })
+function getAllFiles (options) {
+  const { assetPath, allowDotMatching, pattern = '**' } = options
+
+  return globby.sync(pattern, {
+    cwd: assetPath,
+    dot: allowDotMatching
+  })
     .map(file => ({
       relative: file,
       absolute: path.join(assetPath, file)
@@ -222,9 +227,13 @@ function getFullPath (dir) {
   return path.join(process.cwd(), dir) + path.sep // path.sep appends a trailing / or \ depending on platform.
 }
 
-async function prepareDeploymentDirectory (assetPath, assetMatch) {
+async function prepareDeploymentDirectory (assetPath, assetMatch, allowDotMatching) {
   const fullAssetPath = getFullPath(assetPath)
-  const filesToCopy = getAllFiles(fullAssetPath, assetMatch)
+  const filesToCopy = getAllFiles({
+    assetPath: fullAssetPath,
+    pattern: assetMatch,
+    allowDotMatching
+  })
 
   const copyPool = new PromisePool(() => {
     if (filesToCopy.length === 0) return null
@@ -304,7 +313,10 @@ module.exports = async (options, api) => {
   options.uploadOptions = { partSize: (5 * 1024 * 1024), queueSize: 4 }
 
   const deployDirPath = getFullPath(deployDir)
-  const filesToDeploy = getAllFiles(deployDirPath)
+  const filesToDeploy = getAllFiles({
+    assetPath: deployDirPath,
+    allowDotMatching: options.allowDotMatching
+  })
   let filesToGzip = []
 
   const bucketDeployPath = parseDeployPath(options.deployPath)
@@ -315,10 +327,14 @@ module.exports = async (options, api) => {
     ? `https://s3-${options.region}.amazonaws.com/${options.bucket}/`
     : `https://${options.bucket}.s3-website-${options.region}.amazonaws.com/`
 
-  await prepareDeploymentDirectory(options.assetPath, options.assetMatch)
+  await prepareDeploymentDirectory(options.assetPath, options.assetMatch, options.allowDotMatching)
 
   if (options.gzip) {
-    filesToGzip = getAllFiles(deployDirPath, options.gzipFilePattern)
+    filesToGzip = getAllFiles({
+      assetPath: deployDirPath,
+      pattern: options.gzipFilePattern,
+      allowDotMatching: options.allowDotMatching
+    })
       .map(file => file.absolute)
 
     await gzipFiles(filesToGzip)
