@@ -24,13 +24,17 @@ function contentTypeFor(filename) {
   return mime.lookup(filename) || 'application/octet-stream'
 }
 
-async function setupAWS(awsProfile, region) {
+async function setupAWS(awsProfile, region, endpoint) {
   const awsConfig = {
     region: region,
     httpOptions: {
       connectTimeout: 30 * 1000,
       timeout: 120 * 1000
     }
+  }
+
+  if (!endpoint) {
+    awsConfig.endpoint = new AWS.Endpoint(endpoint)
   }
 
   if (awsProfile.toString() !== 'default') {
@@ -291,7 +295,7 @@ async function gzipFiles(filesToGzip) {
 module.exports = async (options, api) => {
   try {
     spinner.start('Setting up AWS')
-    S3 = await setupAWS(options.awsProfile, options.region)
+    S3 = await setupAWS(options.awsProfile, options.region, options.endpoint)
     spinner.succeed('AWS credentials confirmed')
   } catch (err) {
     spinner.fail('Setting up AWS failed.')

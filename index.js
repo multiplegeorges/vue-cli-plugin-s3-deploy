@@ -27,6 +27,7 @@ module.exports = (api, configOptions) => {
     }
 
     // Check for environment overrides of the options in vue.config.js.
+    options.endpoint = process.env.VUE_APP_S3D_ENDPOINT || options.endpoint
     options.awsProfile = process.env.VUE_APP_S3D_AWS_PROFILE || options.awsProfile
     options.region = process.env.VUE_APP_S3D_REGION || options.region
     options.bucket = process.env.VUE_APP_S3D_BUCKET || options.bucket
