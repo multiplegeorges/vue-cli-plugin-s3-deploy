@@ -33,7 +33,7 @@ async function setupAWS(awsProfile, region, endpoint) {
     }
   }
 
-  if (!endpoint) {
+  if (endpoint) {
     awsConfig.endpoint = new AWS.Endpoint(endpoint)
   }
 
