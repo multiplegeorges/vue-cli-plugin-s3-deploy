@@ -13,6 +13,7 @@ Supports:
 * Concurrent uploads for improved deploy times
 * CloudFront distribution invalidation
 * Correct `Cache-Control` metadata for use with PWAs and Service Workers
+* GZIP compression
 * Configurable paths for multiple Vue apps in a single bucket
 
 Prerequisites
@@ -59,7 +60,10 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
     enableCloudfront: "Enables support for Cloudfront distribution invalidation (default: false)",
     cloudfrontId: "The ID of the distribution to invalidate",
     cloudfrontMatchers: "A comma-separated list of paths to invalidate (default: /*)",
-    uploadConcurrency: "Number of concurrent uploads (default: 5)"
+    uploadConcurrency: "Number of concurrent uploads (default: 5)",
+    cacheControl: "Sets cache-control metadata for all uploads, overridden for individual files by pwa settings"
+    gzip: "Enables GZIP compression",
+    gzipFilePattern: "Pattern for matching files to be gzipped. (By default: '**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}')"
 }
 ```
 
@@ -70,6 +74,16 @@ You can specify which files aren't cached by setting a value for the `pwaFiles` 
 ```js
 {
     pwaFiles: "index.html,dont-cache.css,not-this.js"
+}
+```
+
+The `cacheControl` option is intended for deployments with lots of static files and relying on browser or CDN caching.
+
+For example, you may want to have files default to being cached for 1 day:
+
+```js
+{
+    cacheControl: "max-age=86400"
 }
 ```
 
@@ -98,6 +112,10 @@ VUE_APP_S3D_ACL=public-read
 
 VUE_APP_S3D_PWA=true
 VUE_APP_S3D_PWA_FILES=service-worker-stage.js,index.html
+
+VUE_APP_S3D_CACHE_CONTROL="max-age=3600"
+VUE_APP_S3D_GZIP=true
+VUE_APP_S3D_GZIP_FILE_PATTERN="**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}"
 
 VUE_APP_S3D_ENABLE_CLOUDFRONT=true
 VUE_APP_S3D_CLOUDFRONT_ID=AIXXXXXXXX

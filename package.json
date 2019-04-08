@@ -38,6 +38,7 @@
     "@vue/cli-shared-utils": "^3.4.0",
     "aws-sdk": "^2.225.1",
     "es6-promise-pool": "^2.5.0",
+    "fs-extra": "^7.0.1",
     "globby": "^8.0.1",
     "joi": "^14.0.2",
     "lodash": "^4.17.11",
