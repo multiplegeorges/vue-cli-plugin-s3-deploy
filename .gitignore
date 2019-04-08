@@ -59,4 +59,6 @@ typings/
 
 # Compiled JS
 dist
+
+# Workspace files
 .vscode
