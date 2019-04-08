@@ -1,5 +1,6 @@
 const {
   error,
+  exit,
   warn
 } = require('@vue/cli-shared-utils')
 
@@ -22,7 +23,7 @@ module.exports = (api, configOptions) => {
       error('Configuration is out of date.')
       error(`Config: ${options.pluginVersion} Plugin: ${pluginVersion}`)
       error('Run `vue invoke s3-deploy`')
-      return
+      exit(1)
     }
 
     // Check for environment overrides of the options in vue.config.js.
@@ -45,6 +46,11 @@ module.exports = (api, configOptions) => {
     options.pwa = process.env.VUE_APP_S3D_PWA || options.pwa
     options.pwaFiles = process.env.VUE_APP_S3D_PWA_FILES || options.pwaFiles
 
+    options.cacheControl = process.env.VUE_APP_S3D_CACHE_CONTROL || options.cacheControl
+
+    options.gzip = process.env.VUE_APP_S3D_GZIP || options.gzip
+    options.gzipFilePattern = process.env.VUE_APP_S3D_GZIP_FILE_PATTERN || options.gzipFilePattern
+
     options.enableCloudfront = process.env.VUE_APP_S3D_ENABLE_CLOUDFRONT || options.enableCloudfront
     options.cloudfrontId = process.env.VUE_APP_S3D_CLOUDFRONT_ID || options.cloudfrontId
     options.cloudfrontMatchers = process.env.VUE_APP_S3D_CLOUDFRONT_MATCHERS || options.cloudfrontMatchers
@@ -63,6 +69,7 @@ module.exports = (api, configOptions) => {
 
     if (!options.bucket) {
       error('Bucket name must be specified with `bucket` in vue.config.js!')
+      exit(1)
     } else {
       if (options.pwa && !options.pwaFiles) {
         warn('Option pwa is set but no files specified! Defaulting to: service-worker.js')
