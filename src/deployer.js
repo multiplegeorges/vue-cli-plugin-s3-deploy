@@ -20,6 +20,10 @@ class Deployer {
       }
     }
 
+    if (config.options.overrideEndpoint) {
+      config.awsConfig.endpoint = config.options.endpoint
+    }
+
     // path.sep appends a trailing / or \ depending on platform.
     config.fullAssetPath = path.join(process.cwd(), config.options.assetPath) + path.sep
     config.deployPath = this.deployPath(config.options.deployPath)

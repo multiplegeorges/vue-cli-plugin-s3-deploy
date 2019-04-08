@@ -43,9 +43,14 @@ function () {
       httpOptions: {
         connectTimeout: 30 * 1000,
         timeout: 120 * 1000
-      } // path.sep appends a trailing / or \ depending on platform.
-
+      }
     };
+
+    if (config.options.overrideEndpoint) {
+      config.awsConfig.endpoint = config.options.endpoint;
+    } // path.sep appends a trailing / or \ depending on platform.
+
+
     config.fullAssetPath = _path.default.join(process.cwd(), config.options.assetPath) + _path.default.sep;
     config.deployPath = this.deployPath(config.options.deployPath);
     config.fileList = _globby.default.sync(config.options.assetMatch, {

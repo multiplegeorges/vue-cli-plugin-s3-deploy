@@ -80,6 +80,3 @@ test('openConnection initializes with a specified awsProfile name', async () => 
 
   expect(deployer.connection.config.credentials.profile).toBe('s3deploy')
 })
-
-test('')
-

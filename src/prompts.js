@@ -34,6 +34,18 @@ module.exports = [
     }
   },
   {
+    name: 'overrideEndpoint',
+    type: 'confirm',
+    message: 'Override the default endpoint? eg. DigitalOcean',
+    default: false
+  },
+  {
+    name: 'endpoint',
+    type: 'input',
+    message: 'Enter the new endpoint:',
+    when: answers => answers.overrideEndpoint === true
+  },
+  {
     name: 'region',
     type: 'input',
     message: 'Which AWS region hosts the bucket?',

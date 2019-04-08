@@ -9,6 +9,8 @@ var _snakecase = _interopRequireDefault(require("lodash/snakecase"));
 
 var _joi = _interopRequireDefault(require("joi"));
 
+var _path = require("path");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
@@ -21,7 +23,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var VERSION = '3.1.0';
+var VERSION = '4.0.0-rc2';
 exports.VERSION = VERSION;
 
 var Configuration =
@@ -39,6 +41,8 @@ function () {
         return "\n          Configuration is out of date.\n          Config: ".concat(err[0].context.value, " Plugin: ").concat(VERSION, "\n          Run 'vue invoke s3-deploy'\n        ");
       }).required(),
       awsProfile: _joi.default.string().default('default'),
+      overrideEndpoint: _joi.default.boolean().default(false),
+      endpoint: _joi.default.string(),
       region: _joi.default.string().regex(/^[-0-9a-zA-Z]+$/).default('us-east-1'),
       bucket: _joi.default.string().required(),
       createBucket: _joi.default.boolean().default(false),
@@ -55,7 +59,8 @@ function () {
       pwaFiles: _joi.default.string().default('index.html,service-worker.js,manifest.json'),
       enableCloudfront: _joi.default.boolean().default(false),
       cloudfrontId: _joi.default.string(),
-      cloudfrontMatchers: _joi.default.string().default('/index.html,/service-worker.js,/manifest.json')
+      cloudfrontMatchers: _joi.default.string().default('/index.html,/service-worker.js,/manifest.json'),
+      registry: _joi.default.any()
     };
 
     var optionsSchema = _joi.default.object().keys(optionsDefinition).requiredKeys('bucket');

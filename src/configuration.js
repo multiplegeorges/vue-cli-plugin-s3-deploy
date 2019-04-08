@@ -1,7 +1,8 @@
 import snakeCase from 'lodash/snakecase'
 import Joi from 'joi'
+import { join } from 'path';
 
-const VERSION = '3.1.0'
+const VERSION = '4.0.0-rc2'
 
 class Configuration {
   constructor (options) {
@@ -21,6 +22,8 @@ class Configuration {
         `
       }).required(),
       awsProfile: Joi.string().default('default'),
+      overrideEndpoint: Joi.boolean().default(false),
+      endpoint: Joi.string(),
       region: Joi.string().regex(/^[-0-9a-zA-Z]+$/).default('us-east-1'),
       bucket: Joi.string().required(),
       createBucket: Joi.boolean().default(false),
@@ -37,7 +40,8 @@ class Configuration {
       pwaFiles: Joi.string().default('index.html,service-worker.js,manifest.json'),
       enableCloudfront: Joi.boolean().default(false),
       cloudfrontId: Joi.string(),
-      cloudfrontMatchers: Joi.string().default('/index.html,/service-worker.js,/manifest.json')
+      cloudfrontMatchers: Joi.string().default('/index.html,/service-worker.js,/manifest.json'),
+      registry: Joi.any()
     }
 
     let optionsSchema = Joi.object().keys(

@@ -44,6 +44,7 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
 ```js
 {
     awsProfile: "Specifies the credentials profile to use. For env vars, omit or set to 'default'. (default: default)",
+    endpoint: "Override the default AWS endpoint with another e.g. DigitalOcean.",
     region: "AWS region for the specified bucket (default: us-east-1)",
     bucket: "The S3 bucket name (required)",
     createBucket: "Create the bucket if it doesn't exist (default: false)",
