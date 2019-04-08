@@ -174,5 +174,9 @@ Changelog
 Contributing
 ---
 
+Clone the repo and install dependencies with `yarn install`.
+Run `yarn watch-test` to start a test runner.
+Build the dist directory with `yarn build`.
+
 Contributions welcome.
 Just open a pull request.

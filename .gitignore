@@ -56,3 +56,9 @@ typings/
 
 # dotenv environment variables file
 .env
+
+# Compiled JS
+dist
+
+# Workspace files
+.vscode
