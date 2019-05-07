@@ -21,7 +21,7 @@
     "deploy",
     "deployment"
   ],
-  "main": "index.js",
+  "main": "./dist/index.js",
   "homepage": "https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy",
   "author": {
     "name": "Georges Gabereau",
