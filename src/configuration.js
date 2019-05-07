@@ -1,8 +1,9 @@
 import snakeCase from 'lodash/snakecase'
 import Joi from 'joi'
 import { join } from 'path';
+import pkg from '../package.json';
 
-const VERSION = '4.0.0-rc2'
+const VERSION = pkg.version;
 
 class Configuration {
   constructor (options) {
