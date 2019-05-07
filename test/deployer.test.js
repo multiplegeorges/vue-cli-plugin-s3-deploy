@@ -4,9 +4,9 @@ import path from 'path'
 import process from 'process'
 import AWS from 'aws-sdk'
 
-import Deployer from '../deployer'
-import Configuration from '../configuration'
-import { VERSION as PLUGIN_VERSION } from '../configuration'
+import Deployer from '../src/deployer'
+import Configuration from '../src/configuration'
+import { VERSION as PLUGIN_VERSION } from '../src/configuration'
 
 const makeConfig = function (localConfig = {}) {
   return new Configuration({
