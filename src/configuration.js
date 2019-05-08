@@ -1,4 +1,4 @@
-import snakeCase from 'lodash/snakecase'
+import snakeCase from 'lodash/snakeCase'
 import Joi from 'joi'
 import { join } from 'path';
 

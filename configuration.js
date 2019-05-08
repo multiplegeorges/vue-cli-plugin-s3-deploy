@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = exports.VERSION = void 0;
 
-var _snakecase = _interopRequireDefault(require("lodash/snakecase"));
+var _snakecase = _interopRequireDefault(require("lodash/snakeCase"));
 
 var _joi = _interopRequireDefault(require("joi"));
 
