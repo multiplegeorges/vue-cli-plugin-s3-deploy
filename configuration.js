@@ -60,7 +60,9 @@ function () {
       enableCloudfront: _joi.default.boolean().default(false),
       cloudfrontId: _joi.default.string(),
       cloudfrontMatchers: _joi.default.string().default('/index.html,/service-worker.js,/manifest.json'),
-      registry: _joi.default.any()
+      registry: _joi.default.any(),
+      gzip: _joi.default.boolean().default(false),
+      gzipFilePattern: _joi.default.string().default('**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}')
     };
 
     var optionsSchema = _joi.default.object().keys(optionsDefinition).requiredKeys('bucket');

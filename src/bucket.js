@@ -95,6 +95,10 @@ class Bucket {
       uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
     }
 
+    if (uploadOptions.gzip) {
+      uploadParams.ContentEncoding = 'gzip'
+    }
+
     return this.connection.upload(
       uploadParams,
       { partSize: (5 * 1024 * 1024), queueSize: 4 }

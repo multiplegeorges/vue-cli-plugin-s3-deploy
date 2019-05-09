@@ -41,7 +41,9 @@ class Configuration {
       enableCloudfront: Joi.boolean().default(false),
       cloudfrontId: Joi.string(),
       cloudfrontMatchers: Joi.string().default('/index.html,/service-worker.js,/manifest.json'),
-      registry: Joi.any()
+      registry: Joi.any(),
+      gzip: Joi.boolean().default(false),
+      gzipFilePattern: Joi.string().default('**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}'),
     }
 
     let optionsSchema = Joi.object().keys(
