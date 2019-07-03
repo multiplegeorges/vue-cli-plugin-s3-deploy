@@ -21,6 +21,7 @@ class Configuration {
           Run 'vue invoke s3-deploy'
         `
       }).required(),
+      version: Joi.string(),
       awsProfile: Joi.string().default('default'),
       overrideEndpoint: Joi.boolean().default(false),
       endpoint: Joi.string(),
