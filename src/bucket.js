@@ -93,6 +93,8 @@ class Bucket {
 
     if (uploadOptions.pwa) {
       uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+    } else {
+      uploadParams.CacheControl = this.options.cacheControl;
     }
 
     return this.connection.upload(

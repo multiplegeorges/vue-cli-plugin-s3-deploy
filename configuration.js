@@ -60,7 +60,8 @@ function () {
       enableCloudfront: _joi.default.boolean().default(false),
       cloudfrontId: _joi.default.string(),
       cloudfrontMatchers: _joi.default.string().default('/index.html,/service-worker.js,/manifest.json'),
-      registry: _joi.default.any()
+      registry: _joi.default.any(),
+      cacheControl: _joi.default.string().default('max-age=86400')
     };
 
     var optionsSchema = _joi.default.object().keys(optionsDefinition).requiredKeys('bucket');
