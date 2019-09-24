@@ -1,5 +1,5 @@
-import snakeCase from 'lodash/snakecase'
-import Joi from 'joi'
+import { snakeCase } from 'lodash';
+import Joi from 'joi';
 import { join } from 'path';
 
 const VERSION = '4.0.0-rc2'
@@ -41,7 +41,8 @@ class Configuration {
       enableCloudfront: Joi.boolean().default(false),
       cloudfrontId: Joi.string(),
       cloudfrontMatchers: Joi.string().default('/index.html,/service-worker.js,/manifest.json'),
-      registry: Joi.any()
+      registry: Joi.any(),
+      cacheControl: Joi.string().default('max-age=86400')
     }
 
     let optionsSchema = Joi.object().keys(
