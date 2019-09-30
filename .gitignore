@@ -65,3 +65,6 @@ dist
 
 # Workspace files
 .vscode
+
+# Babel output files
+*.js
