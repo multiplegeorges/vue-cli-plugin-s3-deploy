@@ -66,7 +66,8 @@ class Deployer {
         acl: this.config.options.acl,
         staticErrorPage: this.config.options.staticErrorPage,
         staticIndexPage: this.config.options.staticIndexPage,
-        staticWebsiteConfiguration: this.config.options.staticWebsiteConfiguration
+        staticWebsiteConfiguration: this.config.options.staticWebsiteConfiguration,
+        cacheControl: this.config.options.cacheControl
       },
       this.connection
     )

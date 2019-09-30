@@ -3,17 +3,19 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = exports.VERSION = void 0;
+exports["default"] = exports.VERSION = void 0;
 
-var _snakecase = _interopRequireDefault(require("lodash/snakecase"));
+var _lodash = require("lodash");
 
 var _joi = _interopRequireDefault(require("joi"));
 
 var _path = require("path");
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { keys.push.apply(keys, Object.getOwnPropertySymbols(object)); } if (enumerableOnly) keys = keys.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -37,7 +39,7 @@ function () {
     this.options = {};
     this.prefix = 'VUE_APP_S3D';
     var optionsDefinition = {
-      pluginVersion: _joi.default.string().valid(VERSION).error(function (err) {
+      pluginVersion: _joi["default"].string().valid(VERSION).error(function (err) {
         return "\n          Configuration is out of date.\n          Config: ".concat(err[0].context.value, " Plugin: ").concat(VERSION, "\n          Run 'vue invoke s3-deploy'\n        ");
       }).required(),
       awsProfile: _joi.default.string().default('default'),
@@ -62,14 +64,15 @@ function () {
       cloudfrontMatchers: _joi.default.string().default('/index.html,/service-worker.js,/manifest.json'),
       registry: _joi.default.any(),
       gzip: _joi.default.boolean().default(false),
-      gzipFilePattern: _joi.default.string().default('**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}')
+      gzipFilePattern: _joi.default.string().default('**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}'),
+      cacheControl: _joi["default"].string()["default"]('max-age=86400')
     };
 
-    var optionsSchema = _joi.default.object().keys(optionsDefinition).requiredKeys('bucket');
+    var optionsSchema = _joi["default"].object().keys(optionsDefinition).requiredKeys('bucket');
 
     var envOptions = this.applyEnvOverrides(options, Object.keys(optionsDefinition));
 
-    var validOptions = _joi.default.validate(envOptions, optionsSchema);
+    var validOptions = _joi["default"].validate(envOptions, optionsSchema);
 
     if (!validOptions.error) {
       this.options = validOptions.value;
@@ -86,7 +89,7 @@ function () {
       var optionsCopy = _objectSpread({}, options);
 
       optionNames.forEach(function (name) {
-        var envVar = "".concat(_this.prefix, "_").concat((0, _snakecase.default)(name).toUpperCase());
+        var envVar = "".concat(_this.prefix, "_").concat((0, _lodash.snakeCase)(name).toUpperCase());
         optionsCopy[name] = process.env[envVar] || optionsCopy[name];
       });
       return optionsCopy;
@@ -97,4 +100,4 @@ function () {
 }();
 
 var _default = Configuration;
-exports.default = _default;
+exports["default"] = _default;
