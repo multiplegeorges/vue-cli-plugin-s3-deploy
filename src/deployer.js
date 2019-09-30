@@ -95,7 +95,9 @@ class Deployer {
       info('Deployment complete.')
 
       if (this.config.options.enableCloudfront) {
-        this.invalidateDistribution()
+        await this.invalidateDistribution()
+
+        info('Cloudfront invalidated.')
       }
     } catch (uploadErr) {
       error(`Deployment encountered errors.`)

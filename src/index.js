@@ -18,9 +18,10 @@ module.exports = (api, configOptions) => {
   api.registerCommand('s3-deploy', {
     description: 'Deploys the built assets to an S3 bucket based on options set in vue.config.js. Configuration done via `vue invoke s3-deploy`',
     usage: 'vue-cli-service s3-deploy'
-  }, (_) => {
+  }, async (_) => {
     let options = configOptions.pluginOptions.s3Deploy
     let config = new Configuration(options)
+    let runOnComplete = config.options.onCompleteFunction !== false
 
     if (!config.options.bucket) {
       error('Bucket name must be specified with `bucket` in vue.config.js!')
@@ -34,7 +35,17 @@ module.exports = (api, configOptions) => {
 
       let deployer = new Deployer(config)
       deployer.openConnection()
-      deployer.run()
+
+      if (runOnComplete) {
+        try {
+          await deployer.run()
+          config.options.onCompleteFunction(config.options, null)
+        } catch (error) {
+          config.options.onCompleteFunction(config.options, error)
+        }
+      } else {
+        deployer.run()
+      }
     }
   })
 }
