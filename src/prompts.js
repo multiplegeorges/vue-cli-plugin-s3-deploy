@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const regex = require('./constants').regex
 
 module.exports = [
   {
@@ -14,7 +15,7 @@ module.exports = [
       if (fs.existsSync(credentialsPath)) {
         let credentials = fs.readFileSync(credentialsPath, 'utf8')
 
-        let profileNameRegexp = new RegExp(/^\[([0-9a-zA-Z-]*)]?/gm)
+        let profileNameRegexp = new RegExp(regex.profileName)
 
         let match = profileNameRegexp.exec(credentials)
         while (match != null) {
