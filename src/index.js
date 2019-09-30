@@ -21,7 +21,6 @@ module.exports = (api, configOptions) => {
   }, async (_) => {
     let options = configOptions.pluginOptions.s3Deploy
     let config = new Configuration(options)
-    let runOnComplete = config.options.onCompleteFunction !== false
 
     if (!config.options.bucket) {
       error('Bucket name must be specified with `bucket` in vue.config.js!')
@@ -32,18 +31,14 @@ module.exports = (api, configOptions) => {
 
       if(process.env['S3D_DEBUG']) console.log(config.options)
 
-      let deployer = new Deployer(config)
-      deployer.openConnection()
-
-      if (runOnComplete) {
-        try {
-          await deployer.run()
-          config.options.onCompleteFunction(config.options, null)
-        } catch (error) {
-          config.options.onCompleteFunction(config.options, error)
-        }
-      } else {
-        deployer.run()
+      try {
+        let deployer = new Deployer(config)
+        deployer.openConnection()
+        await deployer.run()
+        
+        config.options.onCompleteFunction(config.options, null)
+      } catch (error) {
+        config.options.onCompleteFunction(config.options, error)
       }
     }
   })
