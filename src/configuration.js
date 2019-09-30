@@ -1,9 +1,8 @@
-import { snakeCase } from 'lodash';
-import Joi from 'joi';
-import { join } from 'path';
-import pkg from '../package.json';
+import { snakeCase } from 'lodash'
+import Joi from 'joi'
+import pkg from '../package.json'
 
-const VERSION = pkg.version;
+const VERSION = pkg.version
 
 class Configuration {
   constructor (options) {
@@ -14,7 +13,7 @@ class Configuration {
 
     this.prefix = 'VUE_APP_S3D'
 
-    let optionsDefinition = {
+    const optionsDefinition = {
       pluginVersion: Joi.string().valid(VERSION).error((err) => {
         return `
           Configuration is out of date.
@@ -50,12 +49,12 @@ class Configuration {
       fastGlobOptions: Joi.object().default({ dot: true, onlyFiles: false })
     }
 
-    let optionsSchema = Joi.object().keys(
+    const optionsSchema = Joi.object().keys(
       optionsDefinition
     ).requiredKeys('bucket')
 
-    let envOptions = this.applyEnvOverrides(options, Object.keys(optionsDefinition))
-    let validOptions = Joi.validate(envOptions, optionsSchema)
+    const envOptions = this.applyEnvOverrides(options, Object.keys(optionsDefinition))
+    const validOptions = Joi.validate(envOptions, optionsSchema)
 
     if (!validOptions.error) {
       this.options = validOptions.value
@@ -64,11 +63,11 @@ class Configuration {
     }
   }
 
-  applyEnvOverrides(options, optionNames) {
-    let optionsCopy = { ...options }
+  applyEnvOverrides (options, optionNames) {
+    const optionsCopy = { ...options }
 
     optionNames.forEach((name) => {
-      let envVar = `${this.prefix}_${snakeCase(name).toUpperCase()}`
+      const envVar = `${this.prefix}_${snakeCase(name).toUpperCase()}`
       optionsCopy[name] = process.env[envVar] || optionsCopy[name]
     })
 

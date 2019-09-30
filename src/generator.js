@@ -3,7 +3,7 @@ import { VERSION } from './configuration'
 module.exports = function (api, options, rootOptions) {
   api.extendPackage({
     scripts: {
-      deploy: `vue-cli-service s3-deploy`
+      deploy: 'vue-cli-service s3-deploy'
     }
   })
 

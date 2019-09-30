@@ -32,17 +32,16 @@ class Deployer {
     config.fileList = this.globbySync(config, config.options.assetMatch, true)
     config.pwaFileList = this.globbySync(config, config.options.pwaFiles, true)
 
-    config.remotePath = config.options.staticHosting ?
-      `https://s3-${config.options.region}.amazonaws.com/${config.options.bucket}/`
-      :
-      `https://${config.options.bucket}.s3-website-${config.options.region}.amazonaws.com/`
+    config.remotePath = config.options.staticHosting
+      ? `https://s3-${config.options.region}.amazonaws.com/${config.options.bucket}/`
+      : `https://${config.options.bucket}.s3-website-${config.options.region}.amazonaws.com/`
 
     this.config = config
   }
 
   async openConnection () {
     if (this.config.options.awsProfile !== 'default') {
-      let credentials = new AWS.SharedIniFileCredentials({
+      const credentials = new AWS.SharedIniFileCredentials({
         profile: this.config.options.awsProfile
       })
 
@@ -77,7 +76,7 @@ class Deployer {
       // let the error bubble up from here. We can't fix it.
       // It's probably a permissions issue in AWS.
       await this.bucket.createBucket()
-      if (this.options.staticHosting) await bucket.enableHosting()
+      if (this.options.staticHosting) await this.bucket.enableHosting()
     }
 
     info(`Deploying ${this.config.fileList.length} assets from ${this.config.fullAssetPath} to ${this.config.remotePath}`)
@@ -98,7 +97,7 @@ class Deployer {
         info('Cloudfront invalidated.')
       }
     } catch (uploadErr) {
-      error(`Deployment encountered errors.`)
+      error('Deployment encountered errors.')
       throw new Error(`Upload error: ${uploadErr.toString()}`)
     }
   }
@@ -108,13 +107,13 @@ class Deployer {
       return null
     }
 
-    let filename = this.config.fileList.pop()
+    const filename = this.config.fileList.pop()
     let fileStream = fs.readFileSync(filename)
-    let fileKey = filename.replace(this.config.fullAssetPath, '').replace(/\\/g, '/')
-    let fullFileKey = `${this.config.deployPath}${fileKey}`
-    let pwaSupportForFile = this.config.options.pwa && this.config.options.pwaFiles.indexOf(fileKey) > -1
-    let gzip = this.config.options.gzip && this.globbySync(this.config, this.config.options.gzipFilePattern)
-    
+    const fileKey = filename.replace(this.config.fullAssetPath, '').replace(/\\/g, '/')
+    const fullFileKey = `${this.config.deployPath}${fileKey}`
+    const pwaSupportForFile = this.config.options.pwa && this.config.options.pwaFiles.indexOf(fileKey) > -1
+    const gzip = this.config.options.gzip && this.globbySync(this.config, this.config.options.gzipFilePattern)
+
     if (gzip) {
       fileStream = zlib.gzipSync(fileStream, { level: 9 })
     }
@@ -125,7 +124,7 @@ class Deployer {
         gzip: gzip
       }).then(() => {
         this.uploadCount++
-        let pwaMessage = pwaSupportForFile ? ' with cache disabled for PWA' : ''
+        const pwaMessage = pwaSupportForFile ? ' with cache disabled for PWA' : ''
         info(`(${this.uploadCount}/${this.uploadTotal}) Uploaded ${fullFileKey}${pwaMessage}`)
       })
     } catch (uploadError) {
@@ -145,8 +144,8 @@ class Deployer {
   }
 
   globbySync (config, pattern, addPath) {
-    let options = Object.assign({ cwd: config.fullAssetPath }, config.fastGlobOptions)
-    let matches = globby.sync(pattern, options)
+    const options = Object.assign({ cwd: config.fullAssetPath }, config.fastGlobOptions)
+    const matches = globby.sync(pattern, options)
 
     if (addPath) {
       return matches.map(file => path.join(config.fullAssetPath, file))
@@ -159,7 +158,7 @@ class Deployer {
     const cloudfront = new AWS.CloudFront()
     const invalidationItems = this.config.options.cloudfrontMatchers.split(',')
 
-    let params = {
+    const params = {
       DistributionId: this.config.options.cloudfrontId,
       InvalidationBatch: {
         CallerReference: `vue-cli-plugin-s3-deploy-${Date.now().toString()}`,
@@ -173,12 +172,12 @@ class Deployer {
     try {
       logWithSpinner(`Invalidating CloudFront distribution: ${this.config.options.cloudfrontId}`)
 
-      let data = await cloudfront.createInvalidation(params).promise()
+      const data = await cloudfront.createInvalidation(params).promise()
 
-      info(`Invalidation ID: ${data['Invalidation']['Id']}`)
-      info(`Status: ${data['Invalidation']['Status']}`)
-      info(`Call Reference: ${data['Invalidation']['InvalidationBatch']['CallerReference']}`)
-      info(`See your AWS console for on-going status on this invalidation.`)
+      info(`Invalidation ID: ${data.Invalidation.Id}`)
+      info(`Status: ${data.Invalidation.Status}`)
+      info(`Call Reference: ${data.Invalidation.InvalidationBatch.CallerReference}`)
+      info('See your AWS console for on-going status on this invalidation.')
 
       stopSpinner()
     } catch (err) {

@@ -1,9 +1,9 @@
-import { error, warn, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
-import mime  from 'mime-types'
+import { error, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
+import mime from 'mime-types'
 import { regex } from './constants'
 
 class Bucket {
-  constructor(name, options = {}, connection) {
+  constructor (name, options = {}, connection) {
     if (!name) throw new TypeError('Bucket name must be defined.')
     if (!name.match(regex.bucketName)) {
       throw new TypeError('Bucket name is invalid.\nBucket name must use only lowercase alpha nummeric characters, dots and hyphens. see https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html')
@@ -16,16 +16,15 @@ class Bucket {
   }
 
   async validate () {
-    let params = { Bucket: this.name }
+    const params = { Bucket: this.name }
 
     try {
       return await this.connection.headBucket(params).promise()
     } catch (e) {
-      let message = e.toString().toLowerCase()
+      const message = e.toString().toLowerCase()
 
       if (message.includes('forbidden')) {
         throw new Error(`Bucket: ${this.name} exists, but you do not have permission to access it.`)
-
       } else if (message.includes('notfound')) {
         if (this.options.createBucket) {
           logWithSpinner(`Bucket: creating bucket ${this.name} ...`)
@@ -34,7 +33,6 @@ class Bucket {
         } else {
           throw new Error(`Bucket: ${this.name} not found.`)
         }
-
       } else {
         error(`Bucket: ${this.name} could not be validated.`)
         throw new Error(`AWS Error: ${e.toString()}`)
@@ -43,7 +41,7 @@ class Bucket {
   }
 
   async createBucket () {
-    let params = {
+    const params = {
       Bucket: this.name,
       ACL: this.options.acl
     }
@@ -57,7 +55,7 @@ class Bucket {
   }
 
   async enableHosting () {
-    let params = {
+    const params = {
       Bucket: this.name,
       WebsiteConfiguration: {
         ErrorDocument: {
@@ -74,20 +72,20 @@ class Bucket {
     }
 
     try {
-      logWithSpinner(`Bucket: enabling static hosting...`)
+      logWithSpinner('Bucket: enabling static hosting...')
       await this.connection.putBucketWebsite(params).promise()
       stopSpinner()
     } catch (e) {
       error(`Static hosting could not be enabled on bucket: ${this.name}`)
-      throw new Error(`AWS Error: ${ e.toString() }`)
+      throw new Error(`AWS Error: ${e.toString()}`)
     }
   }
 
-  uploadFile(fileKey, fileStream, uploadOptions) {
-    let uploadFileKey = fileKey.replace(this.options.fullAssetPath, '').replace(/\\/g, '/')
-    let fullFileKey = `${this.options.deployPath}${uploadFileKey}`
+  uploadFile (fileKey, fileStream, uploadOptions) {
+    const uploadFileKey = fileKey.replace(this.options.fullAssetPath, '').replace(/\\/g, '/')
+    const fullFileKey = `${this.options.deployPath}${uploadFileKey}`
 
-    let uploadParams = {
+    const uploadParams = {
       Bucket: this.name,
       Key: fullFileKey,
       Body: fileStream,
@@ -95,13 +93,13 @@ class Bucket {
     }
 
     if (uploadOptions.acl !== 'none') {
-      uploadParams['ACL'] = this.options.acl
+      uploadParams.ACL = this.options.acl
     }
 
     if (uploadOptions.pwa) {
       uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
     } else {
-      uploadParams.CacheControl = this.options.cacheControl;
+      uploadParams.CacheControl = this.options.cacheControl
     }
 
     if (uploadOptions.gzip) {
@@ -117,7 +115,6 @@ class Bucket {
   contentTypeFor (filename) {
     return mime.lookup(filename) || 'application/octet-stream'
   }
-
 }
 
 export default Bucket
