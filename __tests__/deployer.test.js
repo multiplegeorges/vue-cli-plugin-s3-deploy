@@ -29,7 +29,8 @@ test('fullAssetPath is set properly', () => {
     makeConfig({assetPath: 'fake-path-here'})
   )
 
-  expect(deployer.config.fullAssetPath).toMatch(new RegExp(`fake-path-here${path.sep}$`))
+  let expectedPath = path.normalize(`${process.cwd()}/fake-path-here${path.sep}`)
+  expect(deployer.config.fullAssetPath).toMatch(expectedPath)
 })
 
 test('deployPath to remove leading slash for S3', () => {
@@ -48,14 +49,14 @@ test('deployPath to add ending slash for S3', () => {
 
 test('fileList is properly populated with file paths', () => {
   let deployer = new Deployer(
-    makeConfig({ assetPath: 'src/test/test_assets' })
+    makeConfig({ assetPath: '__tests__/test_assets' })
   )
 
   expect(deployer.config.fileList).toEqual(
     expect.arrayContaining(
       [
-        process.cwd() + '/src/test/test_assets/index.html',
-        process.cwd() + '/src/test/test_assets/app.js'
+        path.normalize(process.cwd() + '/__tests__/test_assets/index.html'),
+        path.normalize(process.cwd() + '/__tests__/test_assets/app.js')
       ]
     )
   )

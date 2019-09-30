@@ -1,4 +1,4 @@
-import Bucket from '../bucket'
+import Bucket from '../src/bucket'
 
 test('Bucket requires a name', () => {
   expect(() => {

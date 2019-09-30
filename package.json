@@ -3,8 +3,8 @@
   "version": "4.0.0-rc3",
   "description": "A vue-cli plugin for deploying your built Vue app to an S3 bucket.",
   "scripts": {
-    "test": "cross-env AWS_ACCESS_KEY_ID=access-key cross-env AWS_SECRET_ACCESS_KEY=secret-key jest",
-    "watch-test": "cross-env AWS_ACCESS_KEY_ID=access-key cross-env AWS_SECRET_ACCESS_KEY=secret-key jest --watch",
+    "test": "npx cross-env AWS_ACCESS_KEY_ID=access-key npx cross-env AWS_SECRET_ACCESS_KEY=secret-key jest --coverage",
+    "watch-test": "npx cross-env AWS_ACCESS_KEY_ID=access-key npx cross-env AWS_SECRET_ACCESS_KEY=secret-key jest --watch",
     "build": "rm -rf ./dist && babel src/*.js --presets @babel/preset-env --out-dir ./dist",
     "build-watch": "babel src/*.js --watch --presets @babel/preset-env --out-dir ./dist",
     "prepublish": "yarn build",
@@ -64,6 +64,10 @@
     }
   },
   "jest": {
-    "verbose": true
+    "verbose": true,
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "test_assets"
+    ]
   }
 }

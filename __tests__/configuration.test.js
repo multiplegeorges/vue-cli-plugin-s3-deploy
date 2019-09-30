@@ -1,5 +1,5 @@
-import Configuration from '../configuration'
-import { VERSION as PLUGIN_VERSION } from '../configuration'
+import Configuration from '../src/configuration'
+import { VERSION as PLUGIN_VERSION } from '../src/configuration'
 
 const validConfig = {
   bucket: 'my-bucket',
