@@ -6,6 +6,12 @@ test('Bucket requires a name', () => {
   }).toThrow(new TypeError('Bucket name must be defined.'))
 })
 
+test('Bucket requires a valid name', () => {
+  expect(() => {
+    let bucket = new Bucket('my bucket')
+  }).toThrow(new TypeError('Bucket name is invalid.\nBucket name must use only lowercase alpha nummeric characters, dots and hyphens. see https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html'))
+})
+
 test('Bucket assigns name', () => {
   let bucket = new Bucket('my-bucket', {}, {})
   expect(bucket.name).toBe('my-bucket')

@@ -1,9 +1,13 @@
 import { error, warn, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
 import mime  from 'mime-types'
+import { regex } from './constants'
 
 class Bucket {
   constructor(name, options = {}, connection) {
     if (!name) throw new TypeError('Bucket name must be defined.')
+    if (!name.match(regex.bucketName)) {
+      throw new TypeError('Bucket name is invalid.\nBucket name must use only lowercase alpha nummeric characters, dots and hyphens. see https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html')
+    }
     if (!connection) throw new TypeError('Bucket requires a connection.')
 
     this.name = name
