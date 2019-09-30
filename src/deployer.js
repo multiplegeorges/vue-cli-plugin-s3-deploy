@@ -1,6 +1,7 @@
 import path from 'path'
 import globby from 'globby'
 import fs from 'fs'
+import zlib from 'zlib'
 import { info, error, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
 
 import AWS from 'aws-sdk'
@@ -112,10 +113,16 @@ class Deployer {
     let fileKey = filename.replace(this.config.fullAssetPath, '').replace(/\\/g, '/')
     let fullFileKey = `${this.config.deployPath}${fileKey}`
     let pwaSupportForFile = this.config.options.pwa && this.config.options.pwaFiles.split(',').indexOf(fileKey) > -1
+    let gzip = this.config.options.gzip && globby.sync(this.config.options.gzipFilePattern, { cwd: this.config.fullAssetPath })
+
+    if (gzip) {
+      fileStream = zlib.gzipSync(fileStream, { level: 9 })
+    }
 
     try {
       return this.bucket.uploadFile(fullFileKey, fileStream, {
-        pwa: pwaSupportForFile
+        pwa: pwaSupportForFile,
+        gzip: gzip
       }).then(() => {
         this.uploadCount++
         let pwaMessage = pwaSupportForFile ? ' with cache disabled for PWA' : ''
