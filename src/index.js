@@ -27,8 +27,7 @@ module.exports = (api, configOptions) => {
       error('Bucket name must be specified with `bucket` in vue.config.js!')
     } else {
       if (config.options.pwa && !config.options.pwaFiles) {
-        warn('Option pwa is set but no files specified! Defaulting to: service-worker.js')
-        config.options.pwaFiles = 'service-worker.js'
+        warn('Option pwa is set but no files specified!\nDefaulting to: index.html,service-worker.js,manifest.json')
       }
 
       if(process.env['S3D_DEBUG']) console.log(config.options)

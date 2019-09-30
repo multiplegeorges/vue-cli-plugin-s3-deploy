@@ -29,10 +29,8 @@ class Deployer {
     config.fullAssetPath = path.join(process.cwd(), config.options.assetPath) + path.sep
     config.deployPath = this.deployPath(config.options.deployPath)
 
-    config.fileList = globby.sync(
-      config.options.assetMatch,
-      { cwd: config.fullAssetPath }
-    ).map(file => path.join(config.fullAssetPath, file))
+    config.fileList = this.globbySync(config, config.options.assetMatch, true)
+    config.pwaFileList = this.globbySync(config, config.options.pwaFiles, true)
 
     config.remotePath = config.options.staticHosting ?
       `https://s3-${config.options.region}.amazonaws.com/${config.options.bucket}/`
@@ -114,9 +112,9 @@ class Deployer {
     let fileStream = fs.readFileSync(filename)
     let fileKey = filename.replace(this.config.fullAssetPath, '').replace(/\\/g, '/')
     let fullFileKey = `${this.config.deployPath}${fileKey}`
-    let pwaSupportForFile = this.config.options.pwa && this.config.options.pwaFiles.split(',').indexOf(fileKey) > -1
-    let gzip = this.config.options.gzip && globby.sync(this.config.options.gzipFilePattern, { cwd: this.config.fullAssetPath })
-
+    let pwaSupportForFile = this.config.options.pwa && this.config.options.pwaFiles.indexOf(fileKey) > -1
+    let gzip = this.config.options.gzip && this.globbySync(this.config, this.config.options.gzipFilePattern)
+    
     if (gzip) {
       fileStream = zlib.gzipSync(fileStream, { level: 9 })
     }
@@ -144,6 +142,17 @@ class Deployer {
     if (!path.endsWith('/') && path.length > 0) fixedPath = path + '/'
 
     return fixedPath
+  }
+
+  globbySync (config, pattern, addPath) {
+    let options = Object.assign({ cwd: config.fullAssetPath }, config.fastGlobOptions)
+    let matches = globby.sync(pattern, options)
+
+    if (addPath) {
+      return matches.map(file => path.join(config.fullAssetPath, file))
+    }
+
+    return matches
   }
 
   async invalidateDistribution () {

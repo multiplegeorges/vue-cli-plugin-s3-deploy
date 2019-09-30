@@ -47,6 +47,7 @@ class Configuration {
       gzipFilePattern: Joi.string().default('**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}'),
       cacheControl: Joi.string().default('max-age=86400'),
       onCompleteFunction: false
+      fastGlobOptions: Joi.object().default({ dot: true, onlyFiles: false })
     }
 
     let optionsSchema = Joi.object().keys(
