@@ -42,6 +42,8 @@ class Configuration {
       cloudfrontId: Joi.string(),
       cloudfrontMatchers: Joi.string().default('/index.html,/service-worker.js,/manifest.json'),
       registry: Joi.any(),
+      gzip: Joi.boolean().default(false),
+      gzipFilePattern: Joi.string().default('**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}'),
       cacheControl: Joi.string().default('max-age=86400')
     }
 

@@ -11,6 +11,8 @@ var _globby = _interopRequireDefault(require("globby"));
 
 var _fs = _interopRequireDefault(require("fs"));
 
+var _zlib = _interopRequireDefault(require("zlib"));
+
 var _cliSharedUtils = require("@vue/cli-shared-utils");
 
 var _awsSdk = _interopRequireDefault(require("aws-sdk"));
@@ -199,9 +201,20 @@ function () {
       var fullFileKey = "".concat(this.config.deployPath).concat(fileKey);
       var pwaSupportForFile = this.config.options.pwa && this.config.options.pwaFiles.split(',').indexOf(fileKey) > -1;
 
+      var gzip = this.config.options.gzip && _globby.default.sync(this.config.options.gzipFilePattern, {
+        cwd: this.config.fullAssetPath
+      });
+
+      if (gzip) {
+        fileStream = _zlib.default.gzipSync(fileStream, {
+          level: 9
+        });
+      }
+
       try {
         return this.bucket.uploadFile(fullFileKey, fileStream, {
-          pwa: pwaSupportForFile
+          pwa: pwaSupportForFile,
+          gzip: gzip
         }).then(function () {
           _this.uploadCount++;
           var pwaMessage = pwaSupportForFile ? ' with cache disabled for PWA' : '';

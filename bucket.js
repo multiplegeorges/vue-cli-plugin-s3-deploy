@@ -234,6 +234,10 @@ function () {
         uploadParams.CacheControl = this.options.cacheControl;
       }
 
+      if (uploadOptions.gzip) {
+        uploadParams.ContentEncoding = 'gzip';
+      }
+
       return this.connection.upload(uploadParams, {
         partSize: 5 * 1024 * 1024,
         queueSize: 4
