@@ -90,9 +90,12 @@ class Bucket {
     let uploadParams = {
       Bucket: this.name,
       Key: fullFileKey,
-      ACL: this.options.acl,
       Body: fileStream,
       ContentType: this.contentTypeFor(fileKey)
+    }
+
+    if (uploadOptions.acl !== 'none') {
+      uploadParams['ACL'] = this.options.acl
     }
 
     if (uploadOptions.pwa) {

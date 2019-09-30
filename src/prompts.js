@@ -115,7 +115,7 @@ module.exports = [
   {
     name: 'acl',
     type: 'list',
-    choices: ['private', 'public-read', 'public-read-write', 'aws-exec-read', 'authenticated-read', 'bucket-owner-read', 'bucket-owner-full-control'],
+    choices: ['private', 'public-read', 'public-read-write', 'aws-exec-read', 'authenticated-read', 'bucket-owner-read', 'bucket-owner-full-control', 'none'],
     message: 'Which Access Control List (ACL) setting should be applied to deployed files?',
     default: 'public-read'
   },
