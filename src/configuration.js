@@ -1,8 +1,7 @@
 import { snakeCase } from 'lodash'
 import Joi from 'joi'
-import pkg from '../package.json'
 
-const VERSION = pkg.version
+const VERSION = process.env.npm_package_version
 
 class Configuration {
   constructor (options) {
