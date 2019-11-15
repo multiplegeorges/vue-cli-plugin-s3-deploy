@@ -61,7 +61,6 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
     enableCloudfront: "Enables support for Cloudfront distribution invalidation (default: false)",
     cloudfrontId: "The ID of the distribution to invalidate",
     cloudfrontMatchers: "A comma-separated list of paths to invalidate (default: /*)",
-    uploadConcurrency: "Number of concurrent uploads (default: 5)",
     cacheControl: "Sets cache-control metadata for all uploads, overridden for individual files by pwa settings"
     gzip: "Enables GZIP compression",
     gzipFilePattern: "Pattern for matching files to be gzipped. (By default: '**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}')"
