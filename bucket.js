@@ -9,6 +9,8 @@ var _cliSharedUtils = require("@vue/cli-shared-utils");
 
 var _mimeTypes = _interopRequireDefault(require("mime-types"));
 
+var _globby = _interopRequireDefault(require("globby"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
@@ -227,9 +229,12 @@ function () {
         Body: fileStream,
         ContentType: this.contentTypeFor(fileKey)
       };
+      var cacheControlPerFileMatch = this.matchesCacheControlPerFile(fullFileKey);
 
       if (uploadOptions.pwa) {
         uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+      } else if (cacheControlPerFileMatch) {
+        uploadParams.CacheControl = cacheControlPerFileMatch;
       } else {
         uploadParams.CacheControl = this.options.cacheControl;
       }
@@ -247,6 +252,18 @@ function () {
     key: "contentTypeFor",
     value: function contentTypeFor(filename) {
       return _mimeTypes["default"].lookup(filename) || 'application/octet-stream';
+    }
+  }, {
+    key: "matchesCacheControlPerFile",
+    value: function matchesCacheControlPerFile(filename) {
+      var _this = this;
+
+      var match = Object.keys(this.options.cacheControlPerFile).find(function (glob) {
+        return _globby["default"].sync(glob, {
+          cwd: _this.options.fullAssetPath
+        }).indexOf(filename) !== -1;
+      });
+      return this.options.cacheControlPerFile[match];
     }
   }]);
 

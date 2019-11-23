@@ -44,7 +44,8 @@ class Configuration {
       registry: Joi.any(),
       gzip: Joi.boolean().default(false),
       gzipFilePattern: Joi.string().default('**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}'),
-      cacheControl: Joi.string().default('max-age=86400')
+      cacheControl: Joi.string().default('max-age=86400'),
+      cacheControlPerFile: Joi.object(),
     }
 
     let optionsSchema = Joi.object().keys(

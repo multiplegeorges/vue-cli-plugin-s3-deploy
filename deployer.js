@@ -120,7 +120,8 @@ function () {
                   staticErrorPage: this.config.options.staticErrorPage,
                   staticIndexPage: this.config.options.staticIndexPage,
                   staticWebsiteConfiguration: this.config.options.staticWebsiteConfiguration,
-                  cacheControl: this.config.options.cacheControl
+                  cacheControl: this.config.options.cacheControl,
+                  cacheControlPerFile: this.config.options.cacheControlPerFile
                 }, this.connection);
                 _context2.prev = 1;
                 _context2.next = 4;
@@ -201,12 +202,12 @@ function () {
       var fullFileKey = "".concat(this.config.deployPath).concat(fileKey);
       var pwaSupportForFile = this.config.options.pwa && this.config.options.pwaFiles.split(',').indexOf(fileKey) > -1;
 
-      var gzip = this.config.options.gzip && _globby.default.sync(this.config.options.gzipFilePattern, {
+      var gzip = this.config.options.gzip && _globby["default"].sync(this.config.options.gzipFilePattern, {
         cwd: this.config.fullAssetPath
       });
 
       if (gzip) {
-        fileStream = _zlib.default.gzipSync(fileStream, {
+        fileStream = _zlib["default"].gzipSync(fileStream, {
           level: 9
         });
       }

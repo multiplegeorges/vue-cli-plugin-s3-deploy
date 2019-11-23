@@ -1,5 +1,6 @@
 import { error, warn, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
-import mime  from 'mime-types'
+import mime from 'mime-types'
+import globby from 'globby'
 
 class Bucket {
   constructor(name, options = {}, connection) {
@@ -91,8 +92,12 @@ class Bucket {
       ContentType: this.contentTypeFor(fileKey)
     }
 
+    let cacheControlPerFileMatch = this.matchesCacheControlPerFile(fullFileKey);
+
     if (uploadOptions.pwa) {
       uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+    } else if (cacheControlPerFileMatch) {
+      uploadParams.CacheControl = cacheControlPerFileMatch;
     } else {
       uploadParams.CacheControl = this.options.cacheControl;
     }
@@ -109,6 +114,14 @@ class Bucket {
 
   contentTypeFor (filename) {
     return mime.lookup(filename) || 'application/octet-stream'
+  }
+
+  matchesCacheControlPerFile (filename) {
+    let match = Object.keys(this.options.cacheControlPerFile).find(glob => (
+      globby.sync(glob, { cwd: this.options.fullAssetPath }).indexOf(filename) !== -1
+    ));
+
+    return this.options.cacheControlPerFile[match];
   }
 
 }
