@@ -67,7 +67,8 @@ class Deployer {
         staticErrorPage: this.config.options.staticErrorPage,
         staticIndexPage: this.config.options.staticIndexPage,
         staticWebsiteConfiguration: this.config.options.staticWebsiteConfiguration,
-        cacheControl: this.config.options.cacheControl
+        cacheControl: this.config.options.cacheControl,
+        cacheControlPerFile: this.config.options.cacheControlPerFile
       },
       this.connection
     )

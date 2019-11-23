@@ -63,6 +63,7 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
     cloudfrontMatchers: "A comma-separated list of paths to invalidate (default: /*)",
     uploadConcurrency: "Number of concurrent uploads (default: 5)",
     cacheControl: "Sets cache-control metadata for all uploads, overridden for individual files by pwa settings"
+    cacheControlPerFile: "Overrides the cacheControl setting on a per-file basis (see example below)"
     gzip: "Enables GZIP compression",
     gzipFilePattern: "Pattern for matching files to be gzipped. (By default: '**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}')"
 }
@@ -85,6 +86,20 @@ For example, you may want to have files default to being cached for 1 day:
 ```js
 {
     cacheControl: "max-age=86400"
+}
+```
+
+Per-File Cache Control
+---
+
+The `cacheControlPerFile` option takes precedence over `cacheControl`. Invididual files or globs can be used as keys.
+
+```js
+{
+    cacheControlPerFile: {
+        'img/*': 'max-age=31536000',
+        'index.html': 'max-age=600',
+    }
 }
 ```
 
