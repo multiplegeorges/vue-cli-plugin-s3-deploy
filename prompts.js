@@ -8,7 +8,7 @@ module.exports = [{
   name: 'awsProfile',
   type: 'list',
   message: 'How do you want to authenticate with AWS?',
-  "default": '0',
+  default: '0',
   choices: function choices(_) {
     var profileNames = ['Environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, etc.'];
     var credentialsPath = path.join(require('os').homedir(), '.aws', 'credentials');
@@ -37,7 +37,7 @@ module.exports = [{
   name: 'overrideEndpoint',
   type: 'confirm',
   message: 'Override the default endpoint? eg. DigitalOcean',
-  "default": false
+  default: false
 }, {
   name: 'endpoint',
   type: 'input',
@@ -49,7 +49,7 @@ module.exports = [{
   name: 'region',
   type: 'input',
   message: 'Which AWS region hosts the bucket?',
-  "default": 'us-east-1'
+  default: 'us-east-1'
 }, {
   name: 'bucket',
   type: 'input',
@@ -61,17 +61,17 @@ module.exports = [{
   name: 'createBucket',
   type: 'confirm',
   message: 'Create bucket if it does not exist?',
-  "default": true
+  default: true
 }, {
   name: 'staticHosting',
   type: 'confirm',
   message: 'Enable Static Site Hosting on bucket?',
-  "default": true
+  default: true
 }, {
   name: 'staticIndexPage',
   type: 'input',
   message: 'Filename of static index page:',
-  "default": 'index.html',
+  default: 'index.html',
   when: function when(answers) {
     return answers.staticHosting === true;
   },
@@ -82,7 +82,7 @@ module.exports = [{
   name: 'staticErrorPage',
   type: 'input',
   message: 'Filename of static error page:',
-  "default": 'index.html',
+  default: 'index.html',
   when: function when(answers) {
     return answers.staticHosting === true;
   },
@@ -93,33 +93,33 @@ module.exports = [{
   name: 'assetPath',
   type: 'input',
   message: 'Where are your built files?',
-  "default": 'dist'
+  default: 'dist'
 }, {
   name: 'assetMatch',
   type: 'input',
   message: 'Which files should be deployed?',
-  "default": '**'
+  default: '**'
 }, {
   name: 'deployPath',
   type: 'input',
   message: 'Where in the bucket should the files be deployed?',
-  "default": '/'
+  default: '/'
 }, {
   name: 'acl',
   type: 'list',
   choices: ['private', 'public-read', 'public-read-write', 'aws-exec-read', 'authenticated-read', 'bucket-owner-read', 'bucket-owner-full-control'],
   message: 'Which Access Control List (ACL) setting should be applied to deployed files?',
-  "default": 'public-read'
+  default: 'public-read'
 }, {
   name: 'pwa',
   type: 'confirm',
   message: 'Enable PWA deploy (disables caching of certain files) options?',
-  "default": false
+  default: false
 }, {
   name: 'pwaFiles',
   type: 'input',
   message: 'Disable caching on which files (comma-separated)?',
-  "default": 'index.html,service-worker.js,manifest.json',
+  default: 'index.html,service-worker.js,manifest.json',
   validate: function validate(input) {
     return input !== '' ? true : 'At least one file path is requires.';
   },
@@ -130,12 +130,12 @@ module.exports = [{
   name: 'enableCloudfront',
   type: 'confirm',
   message: 'Enable invalidation of a CloudFront distribution on deploy?',
-  "default": false
+  default: false
 }, {
   name: 'cloudfrontId',
   type: 'input',
   message: 'What is the ID of the distribution to invalidate?',
-  "default": '',
+  default: '',
   when: function when(answers) {
     return answers.enableCloudfront === true;
   },
@@ -146,7 +146,7 @@ module.exports = [{
   name: 'cloudfrontMatchers',
   type: 'input',
   message: 'Enter a comma-separated list of paths to invalidate:',
-  "default": '/index.html,/service-worker.js,/manifest.json',
+  default: '/index.html,/service-worker.js,/manifest.json',
   when: function when(answers) {
     return answers.enableCloudfront === true;
   },

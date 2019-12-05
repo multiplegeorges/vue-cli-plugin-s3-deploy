@@ -35,6 +35,7 @@ class Configuration {
       assetPath: Joi.string().default('dist'),
       assetMatch: Joi.string().default('**'),
       deployPath: Joi.string().default('/'),
+      prependDeployPath: Joi.boolean().default(true),
       acl: Joi.string().default('public-read'),
       pwa: Joi.boolean().default(false),
       pwaFiles: Joi.string().default('index.html,service-worker.js,manifest.json'),

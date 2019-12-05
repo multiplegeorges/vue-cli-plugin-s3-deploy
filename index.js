@@ -6,7 +6,7 @@ var _deployer = _interopRequireDefault(require("./deployer"));
 
 var _configuration = _interopRequireDefault(require("./configuration"));
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var _require = require('@vue/cli-shared-utils'),
     error = _require.error,
@@ -24,7 +24,7 @@ module.exports = function (api, configOptions) {
     usage: 'vue-cli-service s3-deploy'
   }, function (_) {
     var options = configOptions.pluginOptions.s3Deploy;
-    var config = new _configuration["default"](options);
+    var config = new _configuration.default(options);
 
     if (!config.options.bucket) {
       error('Bucket name must be specified with `bucket` in vue.config.js!');
@@ -35,7 +35,7 @@ module.exports = function (api, configOptions) {
       }
 
       if (process.env['S3D_DEBUG']) console.log(config.options);
-      var deployer = new _deployer["default"](config);
+      var deployer = new _deployer.default(config);
       deployer.openConnection();
       deployer.run();
     }
