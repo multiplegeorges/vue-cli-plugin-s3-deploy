@@ -3,8 +3,8 @@ s3-deploy for vue-cli
 
 CALL FOR CONTRIBUTORS
 ===
-If you'd like to participate in the development and maintenance of this plugin, please open an issue and request to be added.
-Thanks all for their contributions so far!
+If you'd like to participate in the development and maintenance of this plugin, please open a PR or an issue. Help is welcome. 
+Thanks to all who have contributed so far!
 
 Usage
 ===
