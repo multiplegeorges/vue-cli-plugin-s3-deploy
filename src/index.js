@@ -24,6 +24,7 @@ module.exports = (api, configOptions) => {
 
     if (!config.options.bucket) {
       error('Bucket name must be specified with `bucket` in vue.config.js!')
+      process.exit(1)
     } else {
       if (config.options.pwa && !config.options.pwaFiles) {
         warn('Option pwa is set but no files specified!\nDefaulting to: index.html,service-worker.js,manifest.json')
@@ -33,7 +34,7 @@ module.exports = (api, configOptions) => {
 
       try {
         const deployer = new Deployer(config)
-        deployer.openConnection()
+        await deployer.openConnection()
         await deployer.run()
 
         config.options.onCompleteFunction(config.options, null)
