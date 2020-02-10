@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const regex = require('./constants').regex
+const regex = require('./helper').regex
 
 module.exports = [
   {

@@ -1,13 +1,13 @@
 import path from 'path'
-import globby from 'globby'
 import fs from 'fs'
 import zlib from 'zlib'
-import { info, error, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
+import { error, info, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
 
 import AWS from 'aws-sdk'
 import PromisePool from 'es6-promise-pool'
 
 import Bucket from './bucket'
+import { globbyMatch, globbySync } from './helper'
 
 class Deployer {
   constructor (config) {
@@ -29,23 +29,22 @@ class Deployer {
     config.fullAssetPath = path.join(process.cwd(), config.options.assetPath) + path.sep
     config.deployPath = this.deployPath(config.options.deployPath)
 
-    config.fileList = this.globbySync(config, config.options.assetMatch, true)
-    config.pwaFileList = this.globbySync(config, config.options.pwaFiles, true)
+    config.fileList = globbySync(config, config.options.assetMatch, true)
+    config.pwaFileList = globbySync(config, config.options.pwaFiles, true)
 
     config.remotePath = config.options.staticHosting
-      ? `https://s3-${config.options.region}.amazonaws.com/${config.options.bucket}/`
-      : `https://${config.options.bucket}.s3-website-${config.options.region}.amazonaws.com/`
+      ? `https://${config.options.bucket}.s3-website-${config.options.region}.amazonaws.com/`
+      : `https://s3-${config.options.region}.amazonaws.com/${config.options.bucket}/`
 
     this.config = config
   }
 
   async openConnection () {
     if (this.config.options.awsProfile !== 'default') {
-      const credentials = new AWS.SharedIniFileCredentials({
+      // ToDo: Catch error
+      this.config.awsConfig.credentials = await new AWS.SharedIniFileCredentials({
         profile: this.config.options.awsProfile
-      })
-
-      this.config.awsConfig.credentials = credentials
+      }).promise()
     }
 
     AWS.config.update(this.config.awsConfig)
@@ -57,6 +56,7 @@ class Deployer {
     this.bucket = new Bucket(
       this.config.options.bucket,
       {
+        region: this.config.options.region,
         fullAssetPath: this.config.fullAssetPath,
         deployPath: this.config.deployPath,
         createBucket: this.config.options.createBucket,
@@ -71,12 +71,13 @@ class Deployer {
 
     try {
       await this.bucket.validate()
+      if (this.config.options.staticUpdate) await this.bucket.enableHosting()
     } catch (e) {
       // Bucket validation failed, so try to correct the error, but
       // let the error bubble up from here. We can't fix it.
       // It's probably a permissions issue in AWS.
       await this.bucket.createBucket()
-      if (this.options.staticHosting) await this.bucket.enableHosting()
+      if (this.config.options.staticHosting) await this.bucket.enableHosting()
     }
 
     info(`Deploying ${this.config.fileList.length} assets from ${this.config.fullAssetPath} to ${this.config.remotePath}`)
@@ -111,17 +112,17 @@ class Deployer {
     let fileStream = fs.readFileSync(filename)
     const fileKey = filename.replace(this.config.fullAssetPath, '').replace(/\\/g, '/')
     const fullFileKey = `${this.config.deployPath}${fileKey}`
-    const pwaSupportForFile = this.config.options.pwa && this.config.options.pwaFiles.indexOf(fileKey) > -1
-    const gzip = this.config.options.gzip && this.globbySync(this.config, this.config.options.gzipFilePattern)
+    const pwaSupportForFile = this.config.options.pwa && globbyMatch(this.config, this.config.options.pwaFiles, fullFileKey)
+    const gzipSupportForFile = this.config.options.gzip && globbyMatch(this.config, this.config.options.gzipFilePattern, fullFileKey)
 
-    if (gzip) {
+    if (gzipSupportForFile) {
       fileStream = zlib.gzipSync(fileStream, { level: 9 })
     }
 
     try {
       return this.bucket.uploadFile(fullFileKey, fileStream, {
         pwa: pwaSupportForFile,
-        gzip: gzip
+        gzip: gzipSupportForFile
       }).then(() => {
         this.uploadCount++
         const pwaMessage = pwaSupportForFile ? ' with cache disabled for PWA' : ''
@@ -141,17 +142,6 @@ class Deployer {
     if (!path.endsWith('/') && path.length > 0) fixedPath = path + '/'
 
     return fixedPath
-  }
-
-  globbySync (config, pattern, addPath) {
-    const options = Object.assign({ cwd: config.fullAssetPath }, config.fastGlobOptions)
-    const matches = globby.sync(pattern, options)
-
-    if (addPath) {
-      return matches.map(file => path.join(config.fullAssetPath, file))
-    }
-
-    return matches
   }
 
   async invalidateDistribution () {

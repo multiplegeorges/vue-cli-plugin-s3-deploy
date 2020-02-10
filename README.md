@@ -62,7 +62,8 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
     cloudfrontId: "The ID of the distribution to invalidate",
     cloudfrontMatchers: "A comma-separated list of paths to invalidate (default: /*)",
     uploadConcurrency: "Number of concurrent uploads (default: 5)",
-    cacheControl: "Sets cache-control metadata for all uploads, overridden for individual files by pwa settings"
+    cacheControl: "Sets cache-control metadata for all uploads, overridden for individual files by pwa settings",
+    cacheControlPerFile: "Overrides the cacheControl setting on a per-file basis (see example below)",
     gzip: "Enables GZIP compression",
     gzipFilePattern: "Pattern for matching files to be gzipped. (By default: '**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}')"
 }
@@ -87,6 +88,19 @@ For example, you may want to have files default to being cached for 1 day:
     cacheControl: "max-age=86400"
 }
 ```
+
+Per-File Cache Control
+---
+
+The `cacheControlPerFile` option takes precedence over `cacheControl`. Invididual files or globs can be used as keys.
+
+```js
+{
+    cacheControlPerFile: {
+        'img/*': 'max-age=31536000',
+        'index.html': 'max-age=600'
+    }
+}
 
 Per-Environment Overrides
 ---
@@ -135,6 +149,18 @@ To specify credentials other than `default` in `~/.aws/credentials`, re-run `vue
 
 Changelog
 ---
+
+**4.0.0**
+- Migrated to class based implementation.
+- Support Custom StaticWebsiteConfiguration.
+- Support Updating Static configuration on existing bucket.
+- Support array options in globby matches.
+- Support deployment with no ACL set.
+- Support custom function when deployment is completed.
+- Support CacheControl per-file (thanks @mhluska)
+- Fix region not being set on bucket.
+- Fix incorrect remote path displayed.
+
 
 **3.0.0**
 

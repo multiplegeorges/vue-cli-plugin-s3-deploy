@@ -63,6 +63,9 @@ typings/
 # Compiled JS
 dist
 
+# Intellij files
+.idea
+
 # Workspace files
 .vscode
 

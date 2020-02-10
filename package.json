@@ -5,8 +5,8 @@
   "scripts": {
     "test": "npx cross-env AWS_ACCESS_KEY_ID=access-key npx cross-env AWS_SECRET_ACCESS_KEY=secret-key jest --coverage",
     "watch-test": "npx cross-env AWS_ACCESS_KEY_ID=access-key npx cross-env AWS_SECRET_ACCESS_KEY=secret-key jest --watch",
-    "build": "rm -f ./*.js && babel src/*.js --presets @babel/preset-env --out-dir ./",
-    "build-watch": "babel src/*.js --watch --presets @babel/preset-env --out-dir ./",
+    "build": "rm -f ./*.js && babel ./src/**/*.js --out-dir ./",
+    "build-watch": "babel ./src/**/*.js --watch --out-dir ./",
     "prepublish": "npm build",
     "lint": "npx eslint ./src/**/*.js",
     "lint:fix": "npx eslint --fix ./src/**/*.js"
@@ -37,7 +37,7 @@
     ]
   },
   "dependencies": {
-    "@hapi/joi": "^15.0.1",
+    "@hapi/joi": "^15.1.1",
     "@vue/cli-shared-utils": "^3.4.0",
     "aws-sdk": "^2.225.1",
     "es6-promise-pool": "^2.5.0",
@@ -65,7 +65,7 @@
     "index.js",
     "prompts.js",
     "generator.js",
-    "constants.js",
+    "helper.js",
     "deployer.js",
     "configuration.js",
     "bucket.js",

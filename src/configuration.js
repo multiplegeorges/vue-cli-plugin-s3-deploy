@@ -1,5 +1,5 @@
 import { snakeCase } from 'lodash'
-import Joi from 'joi'
+import Joi from '@hapi/joi'
 
 const VERSION = process.env.npm_package_version
 
@@ -28,6 +28,7 @@ class Configuration {
       createBucket: Joi.boolean().default(false),
       uploadConcurrency: Joi.number().min(1).default(5),
       staticHosting: Joi.boolean().default(false),
+      staticUpdate: Joi.boolean().default(false),
       staticIndexPage: Joi.string().default('index.html'),
       staticErrorPage: Joi.string().default('index.html'),
       staticWebsiteConfiguration: Joi.object(),
@@ -44,14 +45,12 @@ class Configuration {
       gzip: Joi.boolean().default(false),
       gzipFilePattern: Joi.string().default('**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}'),
       cacheControl: Joi.string().default('max-age=86400'),
-      onCompleteFunction: Joi.function().default(function (options, error) {}),
+      cacheControlPerFile: Joi.array().default([]),
+      onCompleteFunction: Joi.func().arity(2).default(function (options, error) {}),
       fastGlobOptions: Joi.object().default({ dot: true, onlyFiles: false })
     }
 
-    const optionsSchema = Joi.object().keys(
-      optionsDefinition
-    ).requiredKeys('bucket')
-
+    const optionsSchema = Joi.object().keys(optionsDefinition)
     const envOptions = this.applyEnvOverrides(options, Object.keys(optionsDefinition))
     const validOptions = Joi.validate(envOptions, optionsSchema)
 

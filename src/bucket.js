@@ -1,12 +1,15 @@
 import { error, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
 import mime from 'mime-types'
-import { regex } from './constants'
+import { regex, globbyMatch } from './helper'
 
 class Bucket {
   constructor (name, options = {}, connection) {
     if (!name) throw new TypeError('Bucket name must be defined.')
     if (!name.match(regex.bucketName)) {
-      throw new TypeError('Bucket name is invalid.\nBucket name must use only lowercase alpha nummeric characters, dots and hyphens. see https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html')
+      throw new TypeError(`
+        Bucket name is invalid.
+        Bucket name must use only lowercase alpha numeric characters, dots and hyphens. see https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html
+      `)
     }
     if (!connection) throw new TypeError('Bucket requires a connection.')
 
@@ -42,6 +45,7 @@ class Bucket {
 
   async createBucket () {
     const params = {
+      CreateBucketConfiguration: { LocationConstraint: this.options.region },
       Bucket: this.name,
       ACL: this.options.acl
     }
@@ -96,8 +100,12 @@ class Bucket {
       uploadParams.ACL = this.options.acl
     }
 
+    const cacheControlPerFileMatch = this.matchesCacheControlPerFile(fullFileKey)
+
     if (uploadOptions.pwa) {
       uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+    } else if (cacheControlPerFileMatch) {
+      uploadParams.CacheControl = cacheControlPerFileMatch
     } else {
       uploadParams.CacheControl = this.options.cacheControl
     }
@@ -110,6 +118,16 @@ class Bucket {
       uploadParams,
       { partSize: (5 * 1024 * 1024), queueSize: 4 }
     ).promise()
+  }
+
+  matchesCacheControlPerFile (fullFileKey) {
+    const match = Object.keys(this.options.cacheControlPerFile).find(
+      pattern => globbyMatch(this.options, pattern, fullFileKey)
+    )
+
+    return match
+      ? this.options.cacheControlPerFile[match]
+      : false
   }
 
   contentTypeFor (filename) {
