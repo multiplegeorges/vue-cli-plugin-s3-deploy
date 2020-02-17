@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = void 0;
+exports.default = void 0;
 
 var _path = _interopRequireDefault(require("path"));
 
@@ -21,7 +21,7 @@ var _es6PromisePool = _interopRequireDefault(require("es6-promise-pool"));
 
 var _bucket = _interopRequireDefault(require("./bucket"));
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -53,12 +53,12 @@ function () {
     } // path.sep appends a trailing / or \ depending on platform.
 
 
-    config.fullAssetPath = _path["default"].join(process.cwd(), config.options.assetPath) + _path["default"].sep;
+    config.fullAssetPath = _path.default.join(process.cwd(), config.options.assetPath) + _path.default.sep;
     config.deployPath = this.deployPath(config.options.deployPath);
-    config.fileList = _globby["default"].sync(config.options.assetMatch, {
+    config.fileList = _globby.default.sync(config.options.assetMatch, {
       cwd: config.fullAssetPath
     }).map(function (file) {
-      return _path["default"].join(config.fullAssetPath, file);
+      return _path.default.join(config.fullAssetPath, file);
     });
     config.remotePath = config.options.staticHosting ? "https://s3-".concat(config.options.region, ".amazonaws.com/").concat(config.options.bucket, "/") : "https://".concat(config.options.bucket, ".s3-website-").concat(config.options.region, ".amazonaws.com/");
     this.config = config;
@@ -76,15 +76,15 @@ function () {
             switch (_context.prev = _context.next) {
               case 0:
                 if (this.config.options.awsProfile !== 'default') {
-                  credentials = new _awsSdk["default"].SharedIniFileCredentials({
+                  credentials = new _awsSdk.default.SharedIniFileCredentials({
                     profile: this.config.options.awsProfile
                   });
                   this.config.awsConfig.credentials = credentials;
                 }
 
-                _awsSdk["default"].config.update(this.config.awsConfig);
+                _awsSdk.default.config.update(this.config.awsConfig);
 
-                this.connection = new _awsSdk["default"].S3();
+                this.connection = new _awsSdk.default.S3();
                 (0, _cliSharedUtils.info)('Connection to S3 created.');
 
               case 4:
@@ -112,7 +112,7 @@ function () {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                this.bucket = new _bucket["default"](this.config.options.bucket, {
+                this.bucket = new _bucket.default(this.config.options.bucket, {
                   fullAssetPath: this.config.fullAssetPath,
                   deployPath: this.config.deployPath,
                   createBucket: this.config.options.createBucket,
@@ -149,7 +149,7 @@ function () {
                 (0, _cliSharedUtils.info)("Deploying ".concat(this.config.fileList.length, " assets from ").concat(this.config.fullAssetPath, " to ").concat(this.config.remotePath));
                 this.uploadCount = 0;
                 this.uploadTotal = this.config.fileList.length;
-                uploadPool = new _es6PromisePool["default"](this.uploadNextFile.bind(this), parseInt(this.config.options.uploadConcurrency, 10));
+                uploadPool = new _es6PromisePool.default(this.uploadNextFile.bind(this), parseInt(this.config.options.uploadConcurrency, 10));
                 _context2.prev = 17;
                 _context2.next = 20;
                 return uploadPool.start();
@@ -195,7 +195,7 @@ function () {
 
       var filename = this.config.fileList.pop();
 
-      var fileStream = _fs["default"].readFileSync(filename);
+      var fileStream = _fs.default.readFileSync(filename);
 
       var fileKey = filename.replace(this.config.fullAssetPath, '').replace(/\\/g, '/');
       var fullFileKey = "".concat(this.config.deployPath).concat(fileKey);
@@ -245,7 +245,7 @@ function () {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                cloudfront = new _awsSdk["default"].CloudFront();
+                cloudfront = new _awsSdk.default.CloudFront();
                 invalidationItems = this.config.options.cloudfrontMatchers.split(',');
                 params = {
                   DistributionId: this.config.options.cloudfrontId,
@@ -302,4 +302,4 @@ function () {
 }();
 
 var _default = Deployer;
-exports["default"] = _default;
+exports.default = _default;
