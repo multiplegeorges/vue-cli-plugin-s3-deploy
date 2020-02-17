@@ -1,6 +1,6 @@
 {
   "name": "vue-cli-plugin-s3-deploy",
-  "version": "4.0.0-rc2",
+  "version": "4.0.0-rc3",
   "description": "A vue-cli plugin for deploying your built Vue app to an S3 bucket.",
   "scripts": {
     "test": "AWS_ACCESS_KEY_ID=access-key AWS_SECRET_ACCESS_KEY=secret-key jest --verbose src/test",
@@ -52,5 +52,18 @@
   "devDependencies": {
     "babel-jest": "^23.6.0",
     "jest": "^23.6.0"
+  },
+  "files": [
+    "index.js",
+    "prompts.js",
+    "generator.js",
+    "deployer.js",
+    "configuration.js",
+    "bucket.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=8"
   }
 }

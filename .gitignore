@@ -1,3 +1,6 @@
+# Misc
+.DS_Store
+
 # Logs
 logs
 *.log
@@ -60,5 +63,11 @@ typings/
 # Compiled JS
 dist
 
+# Intellij files
+.idea
+
 # Workspace files
 .vscode
+
+# Babel output files
+*.js

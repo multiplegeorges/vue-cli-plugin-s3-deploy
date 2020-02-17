@@ -148,6 +148,10 @@ To specify credentials other than `default` in `~/.aws/credentials`, re-run `vue
 Changelog
 ---
 
+**4.0.0-rc3**
+
+- Include recent PRs and bug fixes
+
 **3.0.0**
 
 - Added support for S3 static site hosting configuration and setup
