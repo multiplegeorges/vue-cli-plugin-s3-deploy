@@ -6,6 +6,8 @@ CALL FOR CONTRIBUTORS
 If you'd like to participate in the development and maintenance of this plugin, please open a PR or an issue. Help is welcome. 
 Thanks to all who have contributed so far!
 
+**NOTE:** This branch refers to version 4.0.0 and above. See the [3.0.0 branch](https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy/tree/3.0.0) for the previous version.
+
 Usage
 ===
 
