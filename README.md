@@ -110,34 +110,34 @@ Deployment options can be overridden with .env files to support development, sta
 The .env file options are, with examples:
 
 ```sh
-VUE_APP_S3D_AWS_PROFILE=stagingadmin
-VUE_APP_S3D_REGION=staging-aws-east-1
-VUE_APP_S3D_BUCKET=staging-bucket
-VUE_APP_S3D_CREATE_BUCKET=true
-VUE_APP_S3D_UPLOAD_CONCURRENCY=5
+S3D_AWS_PROFILE=stagingadmin
+S3D_REGION=staging-aws-east-1
+S3D_BUCKET=staging-bucket
+S3D_CREATE_BUCKET=true
+S3D_UPLOAD_CONCURRENCY=5
 
-VUE_APP_S3D_STATIC_HOSTING=true
-VUE_APP_S3D_STATIC_INDEX_PAGE=index.html
-VUE_APP_S3D_STATIC_ERROR_PAGE=error.html
+S3D_STATIC_HOSTING=true
+S3D_STATIC_INDEX_PAGE=index.html
+S3D_STATIC_ERROR_PAGE=error.html
 
-VUE_APP_S3D_ASSET_PATH=dist/staging
-VUE_APP_S3D_ASSET_MATCH=**
-VUE_APP_S3D_DEPLOY_PATH=/app-staging
-VUE_APP_S3D_ACL=public-read
+S3D_ASSET_PATH=dist/staging
+S3D_ASSET_MATCH=**
+S3D_DEPLOY_PATH=/app-staging
+S3D_ACL=public-read
 
-VUE_APP_S3D_PWA=true
-VUE_APP_S3D_PWA_FILES=service-worker-stage.js,index.html
+S3D_PWA=true
+S3D_PWA_FILES=service-worker-stage.js,index.html
 
-VUE_APP_S3D_CACHE_CONTROL="max-age=3600"
-VUE_APP_S3D_GZIP=true
-VUE_APP_S3D_GZIP_FILE_PATTERN="**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}"
+S3D_CACHE_CONTROL="max-age=3600"
+S3D_GZIP=true
+S3D_GZIP_FILE_PATTERN="**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}"
 
-VUE_APP_S3D_ENABLE_CLOUDFRONT=true
-VUE_APP_S3D_CLOUDFRONT_ID=AIXXXXXXXX
-VUE_APP_S3D_CLOUDFRONT_MATCHERS=/index.html,/styles/*.css,/*.png
+S3D_ENABLE_CLOUDFRONT=true
+S3D_CLOUDFRONT_ID=AIXXXXXXXX
+S3D_CLOUDFRONT_MATCHERS=/index.html,/styles/*.css,/*.png
 ```
 
-**These options OVERRIDE the config options set in vue.config.js** and should be used to customize a default set of options. A common use case is only overriding `VUE_APP_S3D_BUCKET` for production deployment.
+**These options OVERRIDE the config options set in vue.config.js** and should be used to customize a default set of options. A common use case is only overriding `S3D_BUCKET` for production deployment.
 
 Specifying AWS Credentials
 ---
