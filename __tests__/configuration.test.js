@@ -29,7 +29,7 @@ test('Bucket is a required option', () => {
 })
 
 test('Environment overrides applied to empty options', () => {
-  process.env.VUE_APP_S3D_REGION = 'fake-region-1'
+  process.env.S3D_REGION = 'fake-region-1'
 
   let config = new Configuration(validConfig)
 
@@ -37,7 +37,7 @@ test('Environment overrides applied to empty options', () => {
 })
 
 test('Environment overrides specified options', () => {
-  process.env.VUE_APP_S3D_UPLOAD_CONCURRENCY = 99
+  process.env.S3D_UPLOAD_CONCURRENCY = 99
 
   let localConfig = { uploadConcurrency: 3 }
   let config = new Configuration({...validConfig, ...localConfig})

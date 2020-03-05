@@ -10,7 +10,7 @@ class Configuration {
     this.externalOptions = options
     this.options = {}
 
-    this.prefix = 'VUE_APP_S3D'
+    this.prefix = 'S3D'
 
     const optionsDefinition = {
       pluginVersion: Joi.string().valid(VERSION).error((err) => {
