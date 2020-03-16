@@ -85,8 +85,8 @@ class Bucket {
     }
   }
 
-  uploadFile(fileKey, fileStream, uploadOptions) {
-    let uploadParams = {
+  uploadFile (fileKey, fileStream, uploadOptions) {
+    const uploadParams = {
       Bucket: this.name,
       Key: fileKey,
       ACL: this.options.acl,
@@ -98,7 +98,7 @@ class Bucket {
       uploadParams.ACL = this.options.acl
     }
 
-    const cacheControlPerFileMatch = this.matchesCacheControlPerFile(fullFileKey)
+    const cacheControlPerFileMatch = this.matchesCacheControlPerFile(fileKey)
 
     if (uploadOptions.pwa) {
       uploadParams.CacheControl = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
