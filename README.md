@@ -1,6 +1,16 @@
 s3-deploy for vue-cli
 ===
 
+CALL FOR CONTRIBUTORS
+===
+If you'd like to participate in the development and maintenance of this plugin, please open a PR or an issue. Help is welcome. 
+Thanks to all who have contributed so far!
+
+**NOTE:** This branch refers to version 4.0.0 and above. See the [3.0.0 branch](https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy/tree/3.0.0) for the previous version.
+
+Usage
+===
+
 [![npm version](https://badge.fury.io/js/vue-cli-plugin-s3-deploy.svg)](https://badge.fury.io/js/vue-cli-plugin-s3-deploy)
 
 This [vue-cli](https://github.com/vuejs/vue-cli) plugin aims to make it easier to deploy a built Vue.js app to an S3 bucket.
@@ -24,7 +34,7 @@ You must have a set of [valid AWS credentials set up on your system](https://doc
 Installation
 ---
 ```
-yarn add vue-cli-plugin-s3-deploy
+yarn add vue-cli-plugin-s3-deploy@next
 ```
 
 Usage
@@ -44,30 +54,34 @@ Options
 Options are set in `vue.config.js` and overridden on a per-environment basis by `.env`, `.env.staging`, `.env.production`, etc.
 
 ```js
-{
-    awsProfile: "Specifies the credentials profile to use. For env vars, omit or set to 'default'. (default: default)",
-    endpoint: "Override the default AWS endpoint with another e.g. DigitalOcean.",
-    region: "AWS region for the specified bucket (default: us-east-1)",
-    bucket: "The S3 bucket name (required)",
-    createBucket: "Create the bucket if it doesn't exist (default: false)",
-    staticHosting: "Enable S3 static site hosting (default: false)",
-    staticIndexPage: "Sets the default index file (default: index.html)",
-    staticErrorPage: "Sets the default error file (default: error.html)",
-    assetPath: "The path to the built assets (default: dist)",
-    assetMatch: "Regex matcher for asset to deploy (default: **)"
-    deployPath: "Path to deploy the app in the bucket (default: /)",
-    acl: "Access control list permissions to apply in S3 (default: public-read)",
-    uploadConcurrency: "The number of concurrent uploads to S3 (default: 3)",
-    pwa: "Sets max-age=0 for the PWA-related files specified (default: false)",
-    pwaFiles: "Comma-separated list of files to treat as PWA files",
-    enableCloudfront: "Enables support for Cloudfront distribution invalidation (default: false)",
-    cloudfrontId: "The ID of the distribution to invalidate",
-    cloudfrontMatchers: "A comma-separated list of paths to invalidate (default: /*)",
-    uploadConcurrency: "Number of concurrent uploads (default: 5)",
-    cacheControl: "Sets cache-control metadata for all uploads, overridden for individual files by pwa settings",
-    cacheControlPerFile: "Overrides the cacheControl setting on a per-file basis (see example below)",
-    gzip: "Enables GZIP compression",
-    gzipFilePattern: "Pattern for matching files to be gzipped. (By default: '**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}')"
+module.exports = {
+  pluginOptions: {
+    s3Deploy: {
+	    awsProfile: "Specifies the credentials profile to use. For env vars, omit or set to 'default'. (default: default)",
+	    endpoint: "Override the default AWS endpoint with another e.g. DigitalOcean.",
+	    region: "AWS region for the specified bucket (default: us-east-1)",
+	    bucket: "The S3 bucket name (required)",
+	    createBucket: "Create the bucket if it doesn't exist (default: false)",
+	    staticHosting: "Enable S3 static site hosting (default: false)",
+	    staticIndexPage: "Sets the default index file (default: index.html)",
+	    staticErrorPage: "Sets the default error file (default: error.html)",
+	    assetPath: "The path to the built assets (default: dist)",
+	    assetMatch: "Regex matcher for asset to deploy (default: **)"
+	    deployPath: "Path to deploy the app in the bucket (default: /)",
+	    acl: "Access control list permissions to apply in S3 (default: public-read)",
+	    uploadConcurrency: "The number of concurrent uploads to S3 (default: 3)",
+	    pwa: "Sets max-age=0 for the PWA-related files specified (default: false)",
+	    pwaFiles: "Comma-separated list of files to treat as PWA files",
+	    enableCloudfront: "Enables support for Cloudfront distribution invalidation (default: false)",
+	    cloudfrontId: "The ID of the distribution to invalidate",
+	    cloudfrontMatchers: "A comma-separated list of paths to invalidate (default: /*)",
+	    uploadConcurrency: "Number of concurrent uploads (default: 5)",
+	    cacheControl: "Sets cache-control metadata for all uploads, overridden for individual files by pwa settings",
+	    cacheControlPerFile: "Overrides the cacheControl setting on a per-file basis (see example below)",
+	    gzip: "Enables GZIP compression",
+	    gzipFilePattern: "Pattern for matching files to be gzipped. (By default: '**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}')"
+    }
+  }
 }
 ```
 

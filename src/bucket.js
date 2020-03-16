@@ -85,13 +85,11 @@ class Bucket {
     }
   }
 
-  uploadFile (fileKey, fileStream, uploadOptions) {
-    const uploadFileKey = fileKey.replace(this.options.fullAssetPath, '').replace(/\\/g, '/')
-    const fullFileKey = `${this.options.deployPath}${uploadFileKey}`
-
-    const uploadParams = {
+  uploadFile(fileKey, fileStream, uploadOptions) {
+    let uploadParams = {
       Bucket: this.name,
-      Key: fullFileKey,
+      Key: fileKey,
+      ACL: this.options.acl,
       Body: fileStream,
       ContentType: this.contentTypeFor(fileKey)
     }

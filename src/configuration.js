@@ -1,7 +1,7 @@
 import { snakeCase } from 'lodash'
 import Joi from '@hapi/joi'
 
-const VERSION = process.env.npm_package_version
+const VERSION = '4.0.0-rc3'
 
 class Configuration {
   constructor (options) {
