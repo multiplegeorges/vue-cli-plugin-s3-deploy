@@ -46,44 +46,40 @@ Answer the configuration prompts. This will inject a `deploy` script command int
 
 Deploy your app with `yarn deploy`.
 
-See Also: [Managing Enviroments](#Managing%20Enviroments)
+See Also: [Per-Environment Deployment](#Per-Environment%20Deployment)
 
 Options
 ---
 
 Options are set in `vue.config.js` and overridden on a per-environment basis by `.env`, `.env.staging`, `.env.production`, etc.
 
-```js
-module.exports = {
-  pluginOptions: {
-    s3Deploy: {
-	    awsProfile: "Specifies the credentials profile to use. For env vars, omit or set to 'default'. (default: default)",
-	    endpoint: "Override the default AWS endpoint with another e.g. DigitalOcean.",
-	    region: "AWS region for the specified bucket (default: us-east-1)",
-	    bucket: "The S3 bucket name (required)",
-	    createBucket: "Create the bucket if it doesn't exist (default: false)",
-	    staticHosting: "Enable S3 static site hosting (default: false)",
-	    staticIndexPage: "Sets the default index file (default: index.html)",
-	    staticErrorPage: "Sets the default error file (default: error.html)",
-	    assetPath: "The path to the built assets (default: dist)",
-	    assetMatch: "Regex matcher for asset to deploy (default: **)"
-	    deployPath: "Path to deploy the app in the bucket (default: /)",
-	    acl: "Access control list permissions to apply in S3 (default: public-read)",
-	    uploadConcurrency: "The number of concurrent uploads to S3 (default: 3)",
-	    pwa: "Sets max-age=0 for the PWA-related files specified (default: false)",
-	    pwaFiles: "Comma-separated list of files to treat as PWA files",
-	    enableCloudfront: "Enables support for Cloudfront distribution invalidation (default: false)",
-	    cloudfrontId: "The ID of the distribution to invalidate",
-	    cloudfrontMatchers: "A comma-separated list of paths to invalidate (default: /*)",
-	    uploadConcurrency: "Number of concurrent uploads (default: 5)",
-	    cacheControl: "Sets cache-control metadata for all uploads, overridden for individual files by pwa settings",
-	    cacheControlPerFile: "Overrides the cacheControl setting on a per-file basis (see example below)",
-	    gzip: "Enables GZIP compression",
-	    gzipFilePattern: "Pattern for matching files to be gzipped. (By default: '**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}')"
-    }
-  }
-}
-```
+|Option|Type|Default|Description|
+|---|---|---|---|
+|`awsProfile`|string|`default`|Specifies the credentials profile to use. For env vars, omit or set to 'default'.
+|`endpoint`|string|*|Override the default AWS endpoint with another e.g. DigitalOcean.|
+|`region`|string|`us-east-1`|AWS region for the specified bucket|
+|`bucket`|string||The S3 bucket name (required)|
+|`createBucket`|boolean|`false`|Create the bucket if it doesn't exist|
+|`staticHosting`|boolean|`false`|Enable S3 static site hosting|
+|`staticIndexPage`|string|`index.html`|Sets the default index file|
+|`staticErrorPage`|string|`index.html`|Sets the default error file|
+|`assetPath`|string|`dist`|The path to the built assets|
+|`assetMatch`|string|`**`|Regex matcher for asset to deploy|
+|`deployPath`|string|`/`|Path to deploy the app in the bucket|
+|`acl`|string|`public-read`|Access control list permissions to apply in S3|
+|`pwa`|boolean|`false`|Sets max-age=0 for the PWA-related files specified|
+|`pwaFiles`|string||Comma-separated list of files to treat as PWA files (see example below)[#Per-File%20PWA]|
+|`enableCloudfront`|boolean|`false`|Enables support for Cloudfront distribution invalidation|
+|`cloudfrontId`|string||The ID of the distribution to invalidate|
+|`cloudfrontMatchers`|string|`/*`|A comma-separated list of paths to invalidate|
+|`uploadConcurrency`|number|`5`|Number of concurrent uploads|
+|`cacheControl`|string|`public-read`|Sets cache-control metadata for all uploads, overridden for individual files by pwa settings (see example below)[#Cache%20Control]|
+|`cacheControlPerFile`|string||Overrides the cacheControl setting on a per-file basis (see example below)[#Per-File%20Cache%20Control]|
+|`gzip`|string|`true`|Enables GZIP compression|
+|`gzipFilePattern`|string|`**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}`|Pattern for matching files to be gzipped.|
+
+Per-File PWA
+---
 
 The `pwa` option is meant to help make deploying progressive web apps a little easier. Due to the way service workers interact with caching, this option alone will tell the browser to not cache the `service-worker.js` file by default. This ensures that changes made to the service worker are reflected as quickly as possible.
 
@@ -94,6 +90,9 @@ You can specify which files aren't cached by setting a value for the `pwaFiles` 
     pwaFiles: "index.html,dont-cache.css,not-this.js"
 }
 ```
+
+Cache Control
+---
 
 The `cacheControl` option is intended for deployments with lots of static files and relying on browser or CDN caching.
 
@@ -156,7 +155,7 @@ S3D_CLOUDFRONT_MATCHERS=/index.html,/styles/*.css,/*.png
 
 **These options OVERRIDE the config options set in vue.config.js** and should be used to customize a default set of options. A common use case is only overriding `S3D_BUCKET` for production deployment.
 
-Managing Enviroments
+Per-Environment Deployment
 ---
 
 To deploy to different enviroments the `mode` must be set in the CLI:  
@@ -233,5 +232,5 @@ Clone the repo and install dependencies with `yarn install`.
 Run `yarn watch-test` to start a test runner.
 Build the dist directory with `yarn build`.
 
-Contributions welcome.
+Contributions welcome.  
 Just open a pull request.
