@@ -36,6 +36,8 @@ Answer the configuration prompts. This will inject a `deploy` script command int
 
 Deploy your app with `yarn deploy`.
 
+See Also: [Managing Enviroments](#Managing%20Enviroments)
+
 Options
 ---
 
@@ -101,6 +103,7 @@ The `cacheControlPerFile` option takes precedence over `cacheControl`. Invididua
         'index.html': 'max-age=600'
     }
 }
+```
 
 Per-Environment Overrides
 ---
@@ -139,6 +142,16 @@ S3D_CLOUDFRONT_MATCHERS=/index.html,/styles/*.css,/*.png
 
 **These options OVERRIDE the config options set in vue.config.js** and should be used to customize a default set of options. A common use case is only overriding `S3D_BUCKET` for production deployment.
 
+Managing Enviroments
+---
+
+To deploy to different enviroments the `mode` must be set in the CLI:  
+`yarn deploy --mode production` or `yarn deploy --mode staging`, relevent to your `.env.production` or `.env.staging` files (or `yarn deploy --mode unicorns` for `.env.unicorns`).  
+
+Slightly [different for NPM](https://github.com/vuejs/vue-cli/issues/1528#issuecomment-395970443):  
+`npm run deploy -- --mode production` or `npm run deploy -- --mode staging`.
+
+
 Specifying AWS Credentials
 ---
 
@@ -160,6 +173,7 @@ Changelog
 - Support CacheControl per-file (thanks @mhluska)
 - Fix region not being set on bucket.
 - Fix incorrect remote path displayed.
+- Remove VUE_APP prefix from env variables.
 
 
 **3.0.0**
