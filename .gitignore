@@ -70,4 +70,4 @@ dist
 .vscode
 
 # Babel output files
-*.js
+./*.js
