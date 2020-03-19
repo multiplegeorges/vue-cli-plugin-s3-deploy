@@ -53,30 +53,32 @@ Options
 
 Options are set in `vue.config.js` and overridden on a per-environment basis by `.env`, `.env.staging`, `.env.production`, etc.
 
-|Option|Type|Default|Description|
-|---|---|---|---|
-|`awsProfile`|string|`default`|Specifies the credentials profile to use. For env vars, omit or set to 'default'.
-|`endpoint`|string|*|Override the default AWS endpoint with another e.g. DigitalOcean.|
-|`region`|string|`us-east-1`|AWS region for the specified bucket|
-|`bucket`|string||The S3 bucket name (required)|
-|`createBucket`|boolean|`false`|Create the bucket if it doesn't exist|
-|`staticHosting`|boolean|`false`|Enable S3 static site hosting|
-|`staticIndexPage`|string|`index.html`|Sets the default index file|
-|`staticErrorPage`|string|`index.html`|Sets the default error file|
-|`assetPath`|string|`dist`|The path to the built assets|
-|`assetMatch`|string|`**`|Regex matcher for asset to deploy|
-|`deployPath`|string|`/`|Path to deploy the app in the bucket|
-|`acl`|string|`public-read`|Access control list permissions to apply in S3|
-|`pwa`|boolean|`false`|Sets max-age=0 for the PWA-related files specified|
-|`pwaFiles`|string||Comma-separated list of files to treat as PWA files (see example below)[#Per-File%20PWA]|
-|`enableCloudfront`|boolean|`false`|Enables support for Cloudfront distribution invalidation|
-|`cloudfrontId`|string||The ID of the distribution to invalidate|
-|`cloudfrontMatchers`|string|`/*`|A comma-separated list of paths to invalidate|
-|`uploadConcurrency`|number|`5`|Number of concurrent uploads|
-|`cacheControl`|string|`public-read`|Sets cache-control metadata for all uploads, overridden for individual files by pwa settings (see example below)[#Cache%20Control]|
-|`cacheControlPerFile`|string||Overrides the cacheControl setting on a per-file basis (see example below)[#Per-File%20Cache%20Control]|
-|`gzip`|string|`true`|Enables GZIP compression|
-|`gzipFilePattern`|string|`**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}`|Pattern for matching files to be gzipped.|
+|Option|Description|
+|---|---|
+|`awsProfile`|Specifies the credentials profile to use. For env vars, omit or set to 'default'.<br>Default: `default`
+|`endpoint`|Override the default AWS endpoint with another e.g. DigitalOcean.<br>Default: |
+|`region`|AWS region for the specified bucket<br>Default: `us-east-1`|
+|`bucket`|The S3 bucket name (required)<br>Default:|
+|`createBucket`|Create the bucket if it doesn't exist<br>Default: `false`|
+|`staticHosting`|Enable S3 static site hosting<br>Default: `false`|
+|`staticIndexPage`|Sets the default index file<br>Default: `index.html`|
+|`staticErrorPage`|Sets the default error file<br>Default: `index.html`|
+|`assetPath`|The path to the built assets<br>Default: `dist`|
+|`assetMatch`|Regex matcher for asset to deploy<br>Default: `**`|
+|`deployPath`|Path to deploy the app in the bucket<br>Default: `/`|
+|`acl`|Access control list permissions to apply in S3<br>Default: `public-read`|
+|`pwa`|Sets max-age=0 for the PWA-related files specified<br>Default: `false`|
+|`pwaFiles`|Comma-separated list of files to treat as PWA files (see example below)<br>Default: `'index.html,service-worker.js,manifest.json'`|
+|`enableCloudfront`|Enables support for Cloudfront distribution invalidation<br>Default: `false`|
+|`cloudfrontId`|The ID of the distribution to invalidate<br>Default:|
+|`cloudfrontMatchers`|A comma-separated list of paths to invalidate<br>Default: `/*`|
+|`uploadConcurrency`|Number of concurrent uploads<br>Default: `5`|
+|`cacheControl`|Sets cache-control metadata for all uploads, overridden for individual files by pwa settings (see example below)<br>Default: `max-age=86400`|
+|`cacheControlPerFile`|Overrides the cacheControl setting on a per-file basis (see example below)<br>Default: `[]`|
+|`gzip`|Enables GZIP compression<br>Default: `true`|
+|`gzipFilePattern`|Pattern for matching files to be gzipped.<br>Default: `**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}`|
+|`onCompleteFunction`|Function to run when the upload has finished. Passing the options and errors.<br>Default: `function (options, error) {}`|
+|`fastGlobOptions`|[Fast Glob](https://www.npmjs.com/package/fast-glob) options.<br>Default: `{ dot: true, onlyFiles: false }`|
 
 Per-File PWA
 ---
@@ -176,7 +178,7 @@ To specify credentials other than `default` in `~/.aws/credentials`, re-run `vue
 Changelog
 ---
 
-**4.0.0**
+**4.0.0** (Pre-release)
 - Migrated to class based implementation.
 - Support Custom StaticWebsiteConfiguration.
 - Support Updating Static configuration on existing bucket.
