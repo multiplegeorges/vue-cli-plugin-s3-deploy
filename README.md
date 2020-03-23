@@ -67,7 +67,6 @@ module.exports = {
       assetMatch: "Regex matcher for asset to deploy (default: **)",
       deployPath: "Path to deploy the app in the bucket (default: /)",
       acl: "Access control list permissions to apply in S3 (default: public-read)",
-      uploadConcurrency: "The number of concurrent uploads to S3 (default: 3)",
       pwa: "Sets max-age=0 for the PWA-related files specified (default: false)",
       pwaFiles: "Comma-separated list of files to treat as PWA files",
       enableCloudfront: "Enables support for Cloudfront distribution invalidation (default: false)",
