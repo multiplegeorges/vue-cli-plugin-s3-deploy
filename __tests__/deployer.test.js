@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // Need to do this before loading AWS
 
 import path from 'path'
@@ -5,8 +6,7 @@ import process from 'process'
 import AWS from 'aws-sdk'
 
 import Deployer from '../src/deployer'
-import Configuration from '../src/configuration'
-import { VERSION as PLUGIN_VERSION } from '../src/configuration'
+import Configuration, { VERSION as PLUGIN_VERSION } from '../src/configuration'
 
 const makeConfig = function (localConfig = {}) {
   return new Configuration({
@@ -20,35 +20,35 @@ const makeConfig = function (localConfig = {}) {
 
 test('Deployer requires options', () => {
   expect(() => {
-    new Deployer()
+    const deployer = new Deployer()
   }).toThrow(/Configuration is required/)
 })
 
 test('fullAssetPath is set properly', () => {
-  let deployer = new Deployer(
-    makeConfig({assetPath: 'fake-path-here'})
+  const deployer = new Deployer(
+    makeConfig({ assetPath: 'fake-path-here' })
   )
 
-  let expectedPath = path.normalize(`${process.cwd()}/fake-path-here${path.sep}`)
+  const expectedPath = path.normalize(`${process.cwd()}/fake-path-here${path.sep}`)
   expect(deployer.config.fullAssetPath).toMatch(expectedPath)
 })
 
 test('deployPath to remove leading slash for S3', () => {
-  let deployer = new Deployer(
+  const deployer = new Deployer(
     makeConfig({ assetPath: 'fake-path-here' })
   )
   expect(deployer.deployPath('/app/')).toBe('app/')
 })
 
 test('deployPath to add ending slash for S3', () => {
-  let deployer = new Deployer(
+  const deployer = new Deployer(
     makeConfig({ assetPath: 'fake-path-here' })
   )
   expect(deployer.deployPath('app')).toBe('app/')
 })
 
 test('fileList is properly populated with file paths', () => {
-  let deployer = new Deployer(
+  const deployer = new Deployer(
     makeConfig({ assetPath: '__tests__/test_assets' })
   )
 
@@ -63,20 +63,20 @@ test('fileList is properly populated with file paths', () => {
 })
 
 test('openConnection creates an S3 connection', async () => {
-  let deployer = new Deployer(makeConfig())
+  const deployer = new Deployer(makeConfig())
   await deployer.openConnection()
   expect(deployer.connection).toBeInstanceOf(AWS.S3)
 })
 
 test('openConnection initializes with AWS env credentials if present', async () => {
-  let deployer = new Deployer(makeConfig())
+  const deployer = new Deployer(makeConfig())
 
   await deployer.openConnection()
   expect(deployer.connection.config.credentials.accessKeyId).toBe('access-key')
 })
 
 test('openConnection initializes with a specified awsProfile name', async () => {
-  let deployer = new Deployer(makeConfig({awsProfile: 's3deploy'}))
+  const deployer = new Deployer(makeConfig({ awsProfile: 's3deploy' }))
   await deployer.openConnection()
 
   expect(deployer.connection.config.credentials.profile).toBe('s3deploy')

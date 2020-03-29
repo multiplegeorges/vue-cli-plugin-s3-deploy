@@ -37,7 +37,7 @@
     ]
   },
   "dependencies": {
-    "@hapi/joi": "^15.1.1",
+    "@hapi/joi": "^16.1.4",
     "@vue/cli-shared-utils": "^3.4.0",
     "aws-sdk": "^2.225.1",
     "es6-promise-pool": "^2.5.0",
