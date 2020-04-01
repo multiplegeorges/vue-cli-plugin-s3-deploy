@@ -69,9 +69,9 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
 |`acl`|Access control list permissions to apply in S3<br>Default: `public-read`|
 |`pwa`|Sets max-age=0 for the PWA-related files specified<br>Default: `false`|
 |`pwaFiles`|Comma-separated list of files to treat as PWA files (see example below)<br>Default: `'index.html,service-worker.js,manifest.json'`|
-|`enableCloudfront`|Enables support for Cloudfront distribution invalidation<br>Default: `false`|
-|`cloudfrontId`|The ID of the distribution to invalidate<br>Default:|
-|`cloudfrontMatchers`|A comma-separated list of paths to invalidate<br>Default: `/*`|
+|`enableCloudFront`|Enables support for Cloudfront distribution invalidation<br>Default: `false`|
+|`cloudFrontId`|The ID of the distribution to invalidate<br>Default:|
+|`cloudFrontMatchers`|A comma-separated list of paths to invalidate<br>Default: `/*`|
 |`uploadConcurrency`|Number of concurrent uploads<br>Default: `5`|
 |`cacheControl`|Sets cache-control metadata for all uploads, overridden for individual files by pwa settings (see example below)<br>Default: `max-age=86400`|
 |`cacheControlPerFile`|Overrides the cacheControl setting on a per-file basis (see example below)<br>Default: `[]`|

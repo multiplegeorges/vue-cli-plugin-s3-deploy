@@ -2,13 +2,18 @@ import path from 'path'
 import globby from 'globby'
 
 export const globbyMatch = (config, pattern, key) => {
-  
+  const options = Object.assign({ cwd: config.fullAssetPath }, config.fastGlobOptions)
+  const matches = globby.sync(pattern, options)
 
+  if (key && matches && matches.indexOf(key) > -1) {
+    return matches
+  }
+
+  return false
 }
 
 export const globbySync = (config, pattern, addPath) => {
-  const options = Object.assign({ cwd: config.fullAssetPath }, config.fastGlobOptions)
-  const matches = globby.sync(pattern, options)
+  const matches = globbyMatch(config, pattern)
 
   if (addPath) {
     return matches.map(file => path.join(config.fullAssetPath, file))
@@ -19,5 +24,6 @@ export const globbySync = (config, pattern, addPath) => {
 
 export const regex = {
   profileName: /^\[([0-9a-zA-Z-]*)]?/gm,
-  bucketName: /(?=^.{3,63}$)(?!^(\d+\.)+\d+$)(^(([a-z0-9]|[a-z0-9][a-z0-9-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9-]*[a-z0-9])$)/g
+  bucketName: /(?=^.{3,63}$)(?!^(\d+\.)+\d+$)(^(([a-z0-9]|[a-z0-9][a-z0-9-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9-]*[a-z0-9])$)/g,
+  regionName: /^[-0-9a-zA-Z]+$/g
 }

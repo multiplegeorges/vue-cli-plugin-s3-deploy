@@ -47,7 +47,7 @@ class Bucket {
     const params = {
       CreateBucketConfiguration: { LocationConstraint: this.options.region },
       Bucket: this.name,
-      ACL: this.options.acl
+      ACL: this.options.s3Acl
     }
 
     try {
@@ -130,6 +130,15 @@ class Bucket {
 
   contentTypeFor (filename) {
     return mime.lookup(filename) || 'application/octet-stream'
+  }
+
+  async cleanBucket (config) {
+    const params = {
+      Bucket: config.bucketName,
+      Prefix: config.bucketPrefix
+    }
+
+    this.connection.listObjects(params).promise()
   }
 }
 

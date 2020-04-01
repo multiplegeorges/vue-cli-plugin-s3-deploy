@@ -1,5 +1,6 @@
 import '@babel/polyfill'
 import Deployer from './deployer'
+import { invalidateDistribution } from './post-tasks'
 
 import Configuration from './configuration'
 
@@ -25,22 +26,27 @@ module.exports = (api, configOptions) => {
     if (!config.options.bucket) {
       error('Bucket name must be specified with `bucket` in vue.config.js!')
       process.exit(1)
-    } else {
-      if (config.options.pwa && !config.options.pwaFiles) {
-        warn('Option pwa is set but no files specified!\nDefaulting to: index.html,service-worker.js,manifest.json')
-      }
-
-      if (process.env.S3D_DEBUG) console.log(config.options)
-
-      try {
-        const deployer = new Deployer(config)
-        await deployer.openConnection()
-        await deployer.run()
-
-        config.options.onCompleteFunction(config.options, null)
-      } catch (error) {
-        config.options.onCompleteFunction(config.options, error)
-      }
     }
+
+    if (config.options.pwa && !config.options.pwaFiles) {
+      warn('Option pwa is set but no files specified!\nDefaulting to: index.html,service-worker.js,manifest.json')
+    }
+
+    if (process.env.S3D_DEBUG) console.log(config.options)
+
+    let deployError = null
+
+    try {
+      await new Deployer(config).run()
+
+      if (config.options.enableCloudFront) {
+        await invalidateDistribution()
+      }
+
+    } catch (error) {
+      deployError = error
+    }
+
+    config.options.onCompleteFunction(config.options, deployError)
   })
 }

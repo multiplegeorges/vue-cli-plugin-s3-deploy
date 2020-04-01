@@ -1,5 +1,6 @@
 import { snakeCase } from 'lodash'
 import Joi from '@hapi/joi'
+import { regex } from './helper'
 
 const VERSION = '4.0.0-rc4'
 
@@ -20,7 +21,7 @@ class Configuration {
           Run 'vue invoke s3-deploy'
         `
       }).required(),
-      awsProfile: Joi.string().default('default'),
+      s3Profile: Joi.string().default('default'),
       overrideEndpoint: Joi.boolean().default(false),
       endpoint: Joi.string(),
       region: Joi.string().regex(regex.regionName).default('us-east-1'),
@@ -38,9 +39,10 @@ class Configuration {
       acl: Joi.string().default('public-read'),
       pwa: Joi.boolean().default(false),
       pwaFiles: Joi.array().default(['index.html', 'service-worker.js', 'manifest.json']),
-      enableCloudfront: Joi.boolean().default(false),
-      cloudfrontId: Joi.string(),
-      cloudfrontMatchers: Joi.string().default('/index.html,/service-worker.js,/manifest.json'),
+      enableCloudFront: Joi.boolean().default(false),
+      cloudFrontProfile: Joi.string().default('default'),
+      cloudFrontId: Joi.string(),
+      cloudFrontMatchers: Joi.array().default(['/index.html', '/service-worker.js', '/manifest.json']),
       registry: Joi.any(),
       gzip: Joi.boolean().default(false),
       gzipFilePattern: Joi.array().default(['**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}']),
