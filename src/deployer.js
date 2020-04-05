@@ -120,7 +120,7 @@ class Deployer {
     }
 
     try {
-      return this.bucket.uploadFile(fullFileKey, fileStream, {
+      return this.bucket.uploadFile(fileKey, fileStream, {
         pwa: pwaSupportForFile,
         gzip: gzip
       }).then(() => {
