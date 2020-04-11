@@ -1,59 +1,74 @@
-import { snakeCase } from 'lodash'
 import Joi from '@hapi/joi'
-import { regex } from './helper'
+import { defaults, regex } from './helper'
+import { snakeCase } from 'lodash'
 
 const VERSION = '4.0.0-rc4'
 
 class Configuration {
   constructor (options) {
-    if (!options) throw new TypeError('Options are required.')
-
-    this.externalOptions = options
-    this.options = {}
-
-    this.prefix = 'S3D'
-
-    const optionsDefinition = {
-      pluginVersion: Joi.string().valid(VERSION).error((err) => {
-        return `
-          Configuration is out of date.
-          Config: ${err} Plugin: ${VERSION}
-          Run 'vue invoke s3-deploy'
-        `
-      }).required(),
-      s3Profile: Joi.string().default('default'),
-      overrideEndpoint: Joi.boolean().default(false),
-      endpoint: Joi.string(),
-      region: Joi.string().regex(regex.regionName).default('us-east-1'),
-      bucket: Joi.string().regex(regex.bucketName).required(),
-      createBucket: Joi.boolean().default(false),
-      uploadConcurrency: Joi.number().min(1).default(5),
-      staticHosting: Joi.boolean().default(false),
-      staticUpdate: Joi.boolean().default(false),
-      staticIndexPage: Joi.string().default('index.html'),
-      staticErrorPage: Joi.string().default('index.html'),
-      staticWebsiteConfiguration: Joi.object(),
-      assetPath: Joi.string().default('dist'),
-      assetMatch: Joi.array().default(['**']),
-      deployPath: Joi.string().default('/'),
-      acl: Joi.string().default('public-read'),
-      pwa: Joi.boolean().default(false),
-      pwaFiles: Joi.array().default(['index.html', 'service-worker.js', 'manifest.json']),
-      enableCloudFront: Joi.boolean().default(false),
-      cloudFrontProfile: Joi.string().default('default'),
-      cloudFrontId: Joi.string(),
-      cloudFrontMatchers: Joi.array().default(['/index.html', '/service-worker.js', '/manifest.json']),
-      registry: Joi.any(),
-      gzip: Joi.boolean().default(false),
-      gzipFilePattern: Joi.array().default(['**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}']),
-      cacheControl: Joi.string().default('max-age=86400'),
-      cacheControlPerFile: Joi.array().default([]),
-      onCompleteFunction: Joi.func().arity(2).default(function (options, error) {}),
-      fastGlobOptions: Joi.object().default({ dot: true, onlyFiles: false })
+    if (!options) {
+      throw new TypeError('Options are required.')
     }
 
-    const optionsSchema = Joi.object().keys(optionsDefinition)
-    const envOptions = this.applyEnvOverrides(options, Object.keys(optionsDefinition))
+    this.prefix = 'S3D'
+    this.options = {}
+
+    const definitions = {}
+    const pluginVersionError = err =>
+      `Configuration is out of date.
+      Config: ${err} Plugin: ${VERSION}
+      Run 'vue invoke s3-deploy'`
+
+    // General
+    definitions.pluginVersion = Joi.string().valid(VERSION).error(pluginVersionError).required()
+    definitions.onCompleteFunction = Joi.func().arity(2).default((_options, _error) => {})
+    definitions.fastGlobOptions = Joi.object().default({
+      dot: true,
+      onlyFiles: false
+    })
+
+    // AWS
+    definitions.awsUploadConcurrency = Joi.Number().min(1).default(5)
+    definitions.awsEndpoint = Joi.string().default(defaults.awsEndpoint)
+    definitions.awsRegion = Joi.string().regex(regex.regionName).default(defaults.awsRegion)
+
+    // Bucket
+    definitions.s3Profile = Joi.string().default(defaults.s3Profile)
+    definitions.s3BucketName = Joi.string().regex(regex.bucketName).required()
+    definitions.s3BucketCreate = Joi.Boolean().default(defaults.s3BucketCreate)
+    definitions.s3ACL = Joi.string().default(defaults.s3ACL)
+    definitions.s3DeployPath = Joi.string().default(defaults.s3DeployPath)
+
+    // Bucket - Static Hosting
+    definitions.s3StaticHosting = Joi.Boolean().default(defaults.s3StaticHosting)
+    definitions.s3StaticIndexPage = Joi.string().default(defaults.s3StaticIndexPage)
+    definitions.s3StaticErrorPage = Joi.string().default(defaults.s3StaticErrorPage)
+    definitions.s3StaticWebsiteConfiguration = Joi.object()
+
+    // Bucket - Cache Control
+    definitions.s3CacheControl = Joi.string().default(defaults.s3CacheControl)
+    definitions.s3CacheControlPerFile = Joi.Array().default(defaults.s3CacheControlPerFile)
+
+    // Local Assets
+    definitions.localAssetPath = Joi.string().default(defaults.localAssetPath)
+    definitions.localAssetMatch = Joi.Array().default(defaults.localAssetMatch)
+
+    // CloudFront
+    definitions.cloudFront = Joi.Boolean().default(defaults.cloudFront)
+    definitions.cloudFrontProfile = Joi.string().default(defaults.s3Profile)
+    definitions.cloudFrontId = Joi.string()
+    definitions.cloudFrontMatchers = Joi.Array().default(defaults.cloudFrontMatchers)
+
+    // GZip Compression
+    definitions.gzip = Joi.Boolean().default(defaults.gzip)
+    definitions.gzipFilePattern = Joi.Array().default(defaults.gzipFilePattern)
+
+    // Progressive Web App
+    definitions.pwa = Joi.Boolean().default(defaults.pwa)
+    definitions.pwaFiles = Joi.Array().default(defaults.pwaFiles)
+
+    const optionsSchema = Joi.object().keys(definitions)
+    const envOptions = this.applyEnvOverrides(options, Object.keys(definitions))
     const validOptions = optionsSchema.validate(envOptions)
 
     if (!validOptions.error) {

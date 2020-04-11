@@ -3,7 +3,7 @@ import { error, info, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
 
 // Invalidate CloudFront assets
 export const invalidateDistribution = async (config) => {
-  const cloudFront = new AwsConnection(config).cloudFront()
+  const cloudFront = new AwsConnection(config.options).cloudFront()
   const invalidationItems = config.options.cloudFrontMatchers.split(',')
 
   const params = {

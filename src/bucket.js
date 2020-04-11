@@ -1,21 +1,25 @@
-import { error, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
 import mime from 'mime-types'
-import { regex, globbyMatch } from './helper'
+import AwsConnection from './connection'
+import { error, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
+import { regex, globbyMatch, errorMessages } from './helper'
 
 class Bucket {
-  constructor (name, options = {}, connection) {
-    if (!name) throw new TypeError('Bucket name must be defined.')
-    if (!name.match(regex.bucketName)) {
-      throw new TypeError(`
-        Bucket name is invalid.
-        Bucket name must use only lowercase alpha numeric characters, dots and hyphens. see https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html
-      `)
-    }
-    if (!connection) throw new TypeError('Bucket requires a connection.')
+  constructor (config) {
+    this.config = config
+    this.name = config.options.s3BucketName
+    this.connection = new AwsConnection(config.options).s3()
 
-    this.name = name
-    this.options = options
-    this.connection = connection
+    if (!this.name) {
+      throw new TypeError('Bucket name must be defined.')
+    }
+
+    if (!this.name.match(regex.bucketName)) {
+      throw new TypeError(errorMessages.s3BucketName)
+    }
+
+    if (!this.connection) {
+      throw new TypeError('Bucket requires a connection.')
+    }
   }
 
   async validate () {
@@ -29,7 +33,7 @@ class Bucket {
       if (message.includes('forbidden')) {
         throw new Error(`Bucket: ${this.name} exists, but you do not have permission to access it.`)
       } else if (message.includes('notfound')) {
-        if (this.options.createBucket) {
+        if (this.config.options.s3BucketCreate) {
           logWithSpinner(`Bucket: creating bucket ${this.name} ...`)
           await this.createBucket()
           stopSpinner()
@@ -45,9 +49,11 @@ class Bucket {
 
   async createBucket () {
     const params = {
-      CreateBucketConfiguration: { LocationConstraint: this.options.region },
+      CreateBucketConfiguration: {
+        LocationConstraint: this.config.options.awsRegion
+      },
       Bucket: this.name,
-      ACL: this.options.s3Acl
+      ACL: this.config.options.s3ACL
     }
 
     try {
@@ -63,16 +69,16 @@ class Bucket {
       Bucket: this.name,
       WebsiteConfiguration: {
         ErrorDocument: {
-          Key: this.options.staticErrorPage
+          Key: this.config.options.s3StaticErrorPage
         },
         IndexDocument: {
-          Suffix: this.options.staticIndexPage
+          Suffix: this.config.options.s3StaticIndexPage
         }
       }
     }
 
-    if (this.options.staticWebsiteConfiguration) {
-      params.WebsiteConfiguration = this.options.staticWebsiteConfiguration
+    if (this.config.options.s3StaticWebsiteConfiguration) {
+      params.WebsiteConfiguration = this.config.options.s3StaticWebsiteConfiguration
     }
 
     try {
@@ -89,13 +95,13 @@ class Bucket {
     const uploadParams = {
       Bucket: this.name,
       Key: fileKey,
-      ACL: this.options.acl,
+      ACL: this.config.options.s3ACL,
       Body: fileStream,
       ContentType: this.contentTypeFor(fileKey)
     }
 
     if (uploadOptions.acl !== 'none') {
-      uploadParams.ACL = this.options.acl
+      uploadParams.ACL = this.config.options.s3ACL
     }
 
     const cacheControlPerFileMatch = this.matchesCacheControlPerFile(fileKey)
@@ -105,7 +111,7 @@ class Bucket {
     } else if (cacheControlPerFileMatch) {
       uploadParams.CacheControl = cacheControlPerFileMatch
     } else {
-      uploadParams.CacheControl = this.options.cacheControl
+      uploadParams.CacheControl = this.config.options.s3CacheControl
     }
 
     if (uploadOptions.gzip) {
@@ -119,12 +125,12 @@ class Bucket {
   }
 
   matchesCacheControlPerFile (fullFileKey) {
-    const match = Object.keys(this.options.cacheControlPerFile).find(
-      pattern => globbyMatch(this.options, pattern, fullFileKey)
+    const match = Object.keys(this.config.options.s3CacheControlPerFile).find(
+      pattern => globbyMatch(this.config.options, pattern, fullFileKey)
     )
 
     return match
-      ? this.options.cacheControlPerFile[match]
+      ? this.config.options.s3CacheControlPerFile[match]
       : false
   }
 
@@ -132,14 +138,14 @@ class Bucket {
     return mime.lookup(filename) || 'application/octet-stream'
   }
 
-  async cleanBucket (config) {
-    const params = {
-      Bucket: config.bucketName,
-      Prefix: config.bucketPrefix
-    }
-
-    this.connection.listObjects(params).promise()
-  }
+  // async cleanBucket (config) {
+  //   const params = {
+  //     Bucket: config.bucketName,
+  //     Prefix: config.bucketPrefix
+  //   }
+  //
+  //   this.connection.listObjects(params).promise()
+  // }
 }
 
 export default Bucket

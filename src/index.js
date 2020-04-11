@@ -23,26 +23,30 @@ module.exports = (api, configOptions) => {
     const options = configOptions.pluginOptions.s3Deploy
     const config = new Configuration(options)
 
-    if (!config.options.bucket) {
-      error('Bucket name must be specified with `bucket` in vue.config.js!')
+    if (!config.options.s3BucketName) {
+      error('Bucket name must be specified with `s3BucketName` in vue.config.js!')
       process.exit(1)
     }
 
     if (config.options.pwa && !config.options.pwaFiles) {
-      warn('Option pwa is set but no files specified!\nDefaulting to: index.html,service-worker.js,manifest.json')
+      warn(`
+        Option pwa is set but no files specified!
+        Defaulting to: index.html,service-worker.js,manifest.json
+      `)
     }
 
-    if (process.env.S3D_DEBUG) console.log(config.options)
+    if (process.env.S3D_DEBUG) {
+      console.log(config.options)
+    }
 
     let deployError = null
 
     try {
       await new Deployer(config).run()
 
-      if (config.options.enableCloudFront) {
-        await invalidateDistribution()
+      if (config.options.cloudFront) {
+        await invalidateDistribution(config.options)
       }
-
     } catch (error) {
       deployError = error
     }

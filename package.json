@@ -5,7 +5,7 @@
   "scripts": {
     "test": "npx cross-env AWS_ACCESS_KEY_ID=access-key npx cross-env AWS_SECRET_ACCESS_KEY=secret-key jest --coverage",
     "watch-test": "npx cross-env AWS_ACCESS_KEY_ID=access-key npx cross-env AWS_SECRET_ACCESS_KEY=secret-key jest --watch",
-    "build": "rm -f ./*.js && babel ./src/**/*.js --out-dir ./",
+    "build": "trash -f ./*.js && babel ./src/**/*.js --out-dir ./",
     "build-watch": "babel ./src/**/*.js --watch --out-dir ./",
     "prepublish": "npm build",
     "lint": "npx eslint ./src/**/*.js",
@@ -44,7 +44,8 @@
     "fs-extra": "9.0.0",
     "globby": "^8.0.1",
     "lodash": "^4.17.11",
-    "mime-types": "^2.1.18"
+    "mime-types": "^2.1.18",
+    "trash-cli": "^3.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.2",

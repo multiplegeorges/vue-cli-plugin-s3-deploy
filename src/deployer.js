@@ -3,7 +3,6 @@ import fs from 'fs'
 import zlib from 'zlib'
 import { error, info } from '@vue/cli-shared-utils'
 
-import AwsConnection from './connection'
 import PromisePool from 'es6-promise-pool'
 
 import Bucket from './bucket'
@@ -15,16 +14,18 @@ class Deployer {
       throw new TypeError('Configuration is required.')
     }
 
+    const opt = config.options
+
     // path.sep appends a trailing / or \ depending on platform.
-    config.fullAssetPath = path.join(process.cwd(), config.options.assetPath) + path.sep
-    config.deployPath = this.deployPath(config.options.deployPath)
+    config.fullAssetPath = path.join(process.cwd(), opt.localAssetPath) + path.sep
+    config.s3DeployPath = this.fixDeployPath(opt.s3DeployPath)
 
-    config.fileList = globbySync(config, config.options.assetMatch, true)
-    config.pwaFileList = globbySync(config, config.options.pwaFiles, true)
+    config.fileList = globbySync(config, opt.localAssetMatch, true)
+    config.pwaFileList = globbySync(config, opt.pwaFiles, true)
 
-    config.remotePath = config.options.staticHosting
-      ? `https://${config.options.bucket}.s3-website-${config.options.region}.amazonaws.com/`
-      : `https://s3-${config.options.region}.amazonaws.com/${config.options.bucket}/`
+    config.remotePath = opt.staticHosting
+      ? `https://${opt.s3BucketName}.s3-website-${opt.awsRegion}.amazonaws.com/`
+      : `https://s3-${opt.awsRegion}.amazonaws.com/${opt.s3BucketName}/`
 
     this.config = config
   }
@@ -37,7 +38,7 @@ class Deployer {
     const filename = this.config.fileList.pop()
     let fileStream = fs.readFileSync(filename)
     const fileKey = filename.replace(this.config.fullAssetPath, '').replace(/\\/g, '/')
-    const fullFileKey = `${this.config.deployPath}${fileKey}`
+    const fullFileKey = `${this.config.s3DeployPath}${fileKey}`
     const pwaSupportForFile = this.config.options.pwa && globbyMatch(this.config, this.config.options.pwaFiles, fullFileKey)
     const gzipSupportForFile = this.config.options.gzip && globbyMatch(this.config, this.config.options.gzipFilePattern, fullFileKey)
 
@@ -59,7 +60,7 @@ class Deployer {
     }
   }
 
-  deployPath (path) {
+  fixDeployPath (path) {
     let fixedPath
 
     // We don't need a leading slash for root deploys on S3.
@@ -71,21 +72,7 @@ class Deployer {
   }
 
   async run () {
-    this.bucket = new Bucket(
-      this.config.options.bucket,
-      {
-        region: this.config.options.region,
-        fullAssetPath: this.config.fullAssetPath,
-        deployPath: this.config.deployPath,
-        createBucket: this.config.options.createBucket,
-        acl: this.config.options.acl,
-        staticErrorPage: this.config.options.staticErrorPage,
-        staticIndexPage: this.config.options.staticIndexPage,
-        staticWebsiteConfiguration: this.config.options.staticWebsiteConfiguration,
-        cacheControl: this.config.options.cacheControl
-      },
-      new AwsConnection(this.config).s3()
-    )
+    this.bucket = new Bucket(this.config)
 
     try {
       await this.bucket.validate()
