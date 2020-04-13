@@ -30,6 +30,10 @@ class Deployer {
     this.config = config
   }
 
+  /**
+   *
+   * @returns {Promise<ManagedUpload.SendData>|null}
+   */
   uploadNextFile () {
     if (this.config.fileList.length === 0) {
       return null
@@ -60,6 +64,11 @@ class Deployer {
     }
   }
 
+  /**
+   *
+   * @param path
+   * @returns {string}
+   */
   fixDeployPath (path) {
     let fixedPath
 
@@ -71,6 +80,10 @@ class Deployer {
     return fixedPath
   }
 
+  /**
+   *
+   * @returns {Promise<void>}
+   */
   async run () {
     this.bucket = new Bucket(this.config)
 

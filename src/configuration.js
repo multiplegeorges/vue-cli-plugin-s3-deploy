@@ -78,6 +78,11 @@ class Configuration {
     }
   }
 
+  /**
+   * Override vue.config.js variables with ENV variables
+   * @param options
+   * @param optionNames
+   */
   applyEnvOverrides (options, optionNames) {
     const optionsCopy = { ...options }
 

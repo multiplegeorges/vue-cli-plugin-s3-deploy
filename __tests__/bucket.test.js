@@ -1,5 +1,3 @@
-/* eslint-disable prefer-promise-reject-errors */
-/* eslint-disable no-unused-vars */
 import Bucket from '../src/bucket'
 
 test('Bucket requires a name', () => {

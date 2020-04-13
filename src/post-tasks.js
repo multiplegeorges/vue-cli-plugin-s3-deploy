@@ -1,7 +1,11 @@
 import AwsConnection from './connection'
 import { error, info, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
 
-// Invalidate CloudFront assets
+/**
+ * Invalidate CloudFront assets
+ * @param config
+ * @returns {Promise<void>}
+ */
 export const invalidateDistribution = async (config) => {
   const cloudFront = new AwsConnection(config.options).cloudFront()
   const invalidationItems = config.options.cloudFrontMatchers.split(',')

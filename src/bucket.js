@@ -3,6 +3,9 @@ import AwsConnection from './connection'
 import { error, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
 import { regex, globbyMatch, errorMessages } from './helper'
 
+/**
+ *
+ */
 class Bucket {
   constructor (config) {
     this.config = config
@@ -22,6 +25,10 @@ class Bucket {
     }
   }
 
+  /**
+   *
+   * @returns {Promise<PromiseResult<{}, AWSError>>}
+   */
   async validate () {
     const params = { Bucket: this.name }
 
@@ -47,6 +54,10 @@ class Bucket {
     }
   }
 
+  /**
+   *
+   * @returns {Promise<void>}
+   */
   async createBucket () {
     const params = {
       CreateBucketConfiguration: {
@@ -64,6 +75,10 @@ class Bucket {
     }
   }
 
+  /**
+   *
+   * @returns {Promise<void>}
+   */
   async enableHosting () {
     const params = {
       Bucket: this.name,
@@ -91,6 +106,13 @@ class Bucket {
     }
   }
 
+  /**
+   *
+   * @param fileKey
+   * @param fileStream
+   * @param uploadOptions
+   * @returns {Promise<ManagedUpload.SendData>}
+   */
   uploadFile (fileKey, fileStream, uploadOptions) {
     const uploadParams = {
       Bucket: this.name,
@@ -124,6 +146,11 @@ class Bucket {
     ).promise()
   }
 
+  /**
+   *
+   * @param fullFileKey
+   * @returns {*}
+   */
   matchesCacheControlPerFile (fullFileKey) {
     const match = Object.keys(this.config.options.s3CacheControlPerFile).find(
       pattern => globbyMatch(this.config.options, pattern, fullFileKey)
@@ -134,6 +161,11 @@ class Bucket {
       : false
   }
 
+  /**
+   * Fetch the mimetype based on filename
+   * @param filename
+   * @returns {*|string}
+   */
   contentTypeFor (filename) {
     return mime.lookup(filename) || 'application/octet-stream'
   }
