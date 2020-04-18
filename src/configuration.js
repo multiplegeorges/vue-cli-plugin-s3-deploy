@@ -34,6 +34,7 @@ class Configuration {
       staticWebsiteConfiguration: Joi.object(),
       assetPath: Joi.string().default('dist'),
       assetMatch: Joi.string().default('**'),
+      ignoreMatch: Joi.string().default(''),
       deployPath: Joi.string().default('/'),
       acl: Joi.string().default('public-read'),
       pwa: Joi.boolean().default(false),

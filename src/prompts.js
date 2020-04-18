@@ -98,6 +98,12 @@ module.exports = [
     default: '**'
   },
   {
+    name: 'ignoreMatch',
+    type: 'input',
+    message: 'Which files should be ignored?',
+    default: ''
+  },
+  {
     name: 'deployPath',
     type: 'input',
     message: 'Where in the bucket should the files be deployed?',

@@ -30,7 +30,7 @@ class Deployer {
     config.deployPath = this.deployPath(config.options.deployPath)
 
     config.fileList = globby.sync(
-      config.options.assetMatch,
+      [config.options.assetMatch, config.options.ignoreMatch],
       { cwd: config.fullAssetPath }
     ).map(file => path.join(config.fullAssetPath, file))
 
