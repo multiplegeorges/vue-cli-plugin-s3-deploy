@@ -16,14 +16,9 @@ const awsProfileNames = () => {
 
   if (fs.existsSync(credentialsPath)) {
     const credentials = fs.readFileSync(credentialsPath, 'utf8')
+    const matches = [...credentials.matchAll(regex.profileName)]
 
-    const profileNameRegexp = new RegExp(regex.profileName)
-
-    let match = profileNameRegexp.exec(credentials)
-    while (match != null) {
-      profileNames.push(profilePrefix + match[1])
-      match = profileNameRegexp.exec(credentials)
-    }
+    matches.forEach(match => profileNames.push(profilePrefix + match[1]))
   }
 
   return profileNames
@@ -57,7 +52,6 @@ module.exports = [
     message: 'Which AWS region hosts the bucket?',
     default: defaults.awsRegion
   },
-
   {
     name: 's3Profile',
     type: 'list',
