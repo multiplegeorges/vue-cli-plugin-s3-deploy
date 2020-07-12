@@ -134,7 +134,7 @@ class Deployer {
   }
 
   deployPath (path) {
-    let fixedPath
+    let fixedPath = path
 
     // We don't need a leading slash for root deploys on S3.
     if (path.startsWith('/')) fixedPath = path.slice(1, path.length)
