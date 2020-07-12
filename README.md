@@ -153,6 +153,10 @@ If your build process appends hashes to the files it generates, you may find tha
 Changelog
 ---
 
+**4.0.0-rc4**
+
+- Fixes for `deployPath` failures. (Thanks @tarasbilohan) 
+
 **4.0.0-rc3**
 
 - Include recent PRs and bug fixes
