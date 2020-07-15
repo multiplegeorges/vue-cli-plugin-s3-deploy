@@ -153,7 +153,7 @@ If your build process appends hashes to the files it generates, you may find tha
 GitHub Action
 ---
 
-@jackdcasey has written a GitHub action to deploy with vue-cli-plugin-s3-deploy! https://github.com/jackdcasey/vue-cli-plugin-s3-deploy-action
+@jackdcasey has written a GitHub action to deploy with vue-cli-plugin-s3-deploy! https://github.com/jackdcasey/vue-cli-plugin-s3-deploy-action (In Development)
 
 Changelog
 ---
