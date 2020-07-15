@@ -150,6 +150,11 @@ Cleanup
 
 If your build process appends hashes to the files it generates, you may find that files with old hashes build up in your S3 bucket. Consider using this plugin to tag these old files so that S3 can expire them after a set number of days: https://github.com/euan-forrester/vue-cli-plugin-s3-deploy-cleanup
 
+GitHub Action
+---
+
+@jackdcasey has written a GitHub action to deploy with vue-cli-plugin-s3-deploy! https://github.com/jackdcasey/vue-cli-plugin-s3-deploy-action
+
 Changelog
 ---
 
