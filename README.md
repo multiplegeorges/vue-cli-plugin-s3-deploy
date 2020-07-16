@@ -3,7 +3,7 @@ s3-deploy for vue-cli
 
 CALL FOR CONTRIBUTORS
 ===
-If you'd like to participate in the development and maintenance of this plugin, please open a PR or an issue. Help is welcome. 
+If you'd like to participate in the development and maintenance of this plugin, please open a PR or an issue. Help is welcome.
 Thanks to all who have contributed so far!
 
 **NOTE:** This branch refers to version 4.0.0 and above. See the [3.0.0 branch](https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy/tree/3.0.0) for the previous version.
@@ -65,6 +65,7 @@ module.exports = {
       staticErrorPage: "Sets the default error file (default: error.html)",
       assetPath: "The path to the built assets (default: dist)",
       assetMatch: "Regex matcher for asset to deploy (default: **)",
+      ignoreMatch: "Regex matcher for ignore some files to deploy (default: '')",
       deployPath: "Path to deploy the app in the bucket (default: /)",
       acl: "Access control list permissions to apply in S3 (default: public-read)",
       pwa: "Sets max-age=0 for the PWA-related files specified (default: false)",
