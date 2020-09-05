@@ -55,32 +55,33 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
 
 |Option|Description|
 |---|---|
-|`awsProfile`|Specifies the credentials profile to use. For env vars, omit or set to 'default'.<br>Default: `default`
-|`endpoint`|Override the default AWS endpoint with another e.g. DigitalOcean.<br>Default: |
-|`region`|AWS region for the specified bucket<br>Default: `us-east-1`|
-|`bucket`|The S3 bucket name (required)<br>Default:|
-|`createBucket`|Create the bucket if it doesn't exist<br>Default: `false`|
-|`staticHosting`|Enable S3 static site hosting<br>Default: `false`|
-|`staticIndexPage`|Sets the default index file<br>Default: `index.html`|
-|`staticErrorPage`|Sets the default error file<br>Default: `index.html`|
-|`assetPath`|The path to the built assets<br>Default: `dist`|
-|`assetMatch`|Regex matcher for asset to deploy<br>Default: `**`|
-|`deployPath`|Path to deploy the app in the bucket<br>Default: `/`|
-|`acl`|Access control list permissions to apply in S3<br>Default: `public-read`|
-|`pwa`|Sets max-age=0 for the PWA-related files specified<br>Default: `false`|
-|`pwaFiles`|Comma-separated list of files to treat as PWA files (see example below)<br>Default: `'index.html,service-worker.js,manifest.json'`|
-|`enableCloudFront`|Enables support for Cloudfront distribution invalidation<br>Default: `false`|
+|`awsEndpoint`|Override the default AWS endpoint with another e.g. DigitalOcean.<br>Default: |
+|`awsRegion`|AWS region for the specified bucket<br>Default: `us-east-1`|
+|`awsUploadConcurrency`|Number of concurrent uploads<br>Default: `5`|
+|`cloudFront`|Enables support for Cloudfront distribution invalidation<br>Default: `false`|
 |`cloudFrontId`|The ID of the distribution to invalidate<br>Default:|
 |`cloudFrontMatchers`|A comma-separated list of paths to invalidate<br>Default: `/*`|
-|`uploadConcurrency`|Number of concurrent uploads<br>Default: `5`|
-|`cacheControl`|Sets cache-control metadata for all uploads, overridden for individual files by pwa settings (see example below)<br>Default: `max-age=86400`|
-|`cacheControlPerFile`|Overrides the cacheControl setting on a per-file basis (see example below)<br>Default: `[]`|
+|`cloudFrontProfile`|Specifies the credentials profile to use. For env vars, omit or set to 'default'.<br>Default: `default`|
+|`fastGlobOptions`|[Fast Glob](https://www.npmjs.com/package/fast-glob) options.<br>Default: `{ dot: true, onlyFiles: false }`|
 |`gzip`|Enables GZIP compression<br>Default: `true`|
 |`gzipFilePattern`|Pattern for matching files to be gzipped.<br>Default: `**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}`|
+|`localAssetMatch`|Regex matcher for asset to deploy<br>Default: `**`|
+|`localAssetPath`|The path to the built assets<br>Default: `dist`|
 |`onCompleteFunction`|Function to run when the upload has finished. Passing the options and errors.<br>Default: `function (options, error) {}`|
-|`fastGlobOptions`|[Fast Glob](https://www.npmjs.com/package/fast-glob) options.<br>Default: `{ dot: true, onlyFiles: false }`|
-
-Per-File PWA
+|`pluginVersion`|Validate if configurations is outdated. (required)<br>Default:|
+|`pwa`|Sets max-age=0 for the PWA-related files specified<br>Default: `false`|
+|`pwaFiles`|Comma-separated list of files to treat as PWA files (see example below)<br>Default: `'index.html,service-worker.js,manifest.json'`|
+|`s3ACL`|Access control list permissions to apply in S3<br>Default: `public-read`|
+|`s3BucketCreate`|Create the bucket if it doesn't exist<br>Default: `false`|
+|`s3BucketName`|The S3 bucket name (required)<br>Default:|
+|`s3CacheControl`|Sets cache-control metadata for all uploads, overridden for individual files by pwa settings (see example below)<br>Default: `max-age=86400`|
+|`s3CacheControlPerFile`|Overrides the cacheControl setting on a per-file basis (see example below)<br>Default: `[]`|
+|`s3DeployPath`|Path to deploy the app in the bucket<br>Default: `/`|
+|`s3Profile`|Specifies the credentials profile to use. For env vars, omit or set to 'default'.<br>Default: `default`
+|`s3StaticErrorPage`|Sets the default error file<br>Default: `index.html`|
+|`s3StaticHosting`|Enable S3 static site hosting<br>Default: `false`|
+|`s3StaticIndexPage`|Sets the default index file<br>Default: `index.html`|
+|`s3StaticWebsiteConfiguration`|Any configuration for s3 static website configuration. See more in: [WebsiteConfiguration documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-websiteconfiguration.html)|
 ---
 
 The `pwa` option is meant to help make deploying progressive web apps a little easier. Due to the way service workers interact with caching, this option alone will tell the browser to not cache the `service-worker.js` file by default. This ensures that changes made to the service worker are reflected as quickly as possible.
@@ -96,24 +97,24 @@ You can specify which files aren't cached by setting a value for the `pwaFiles` 
 Cache Control
 ---
 
-The `cacheControl` option is intended for deployments with lots of static files and relying on browser or CDN caching.
+The `s3CacheControl` option is intended for deployments with lots of static files and relying on browser or CDN caching.
 
 For example, you may want to have files default to being cached for 1 day:
 
 ```js
 {
-    cacheControl: "max-age=86400"
+    s3CacheControl: "max-age=86400"
 }
 ```
 
 Per-File Cache Control
 ---
 
-The `cacheControlPerFile` option takes precedence over `cacheControl`. Invididual files or globs can be used as keys.
+The `s3CacheControlPerFile` option takes precedence over `s3CacheControl`. Invididual files or globs can be used as keys.
 
 ```js
 {
-    cacheControlPerFile: {
+    s3CacheControlPerFile: {
         'img/*': 'max-age=31536000',
         'index.html': 'max-age=600'
     }
@@ -189,6 +190,7 @@ Changelog
 - Fix region not being set on bucket.
 - Fix incorrect remote path displayed.
 - Remove VUE_APP prefix from env variables.
+- BREAK CHANGES: rename configurations options.
 
 
 **3.0.0**
