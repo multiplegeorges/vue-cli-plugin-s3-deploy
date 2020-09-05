@@ -75,7 +75,7 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
 |`s3BucketCreate`|Create the bucket if it doesn't exist<br>Default: `false`|
 |`s3BucketName`|The S3 bucket name (required)<br>Default:|
 |`s3CacheControl`|Sets cache-control metadata for all uploads, overridden for individual files by pwa settings (see example below)<br>Default: `max-age=86400`|
-|`s3CacheControlPerFile`|Overrides the cacheControl setting on a per-file basis (see example below)<br>Default: `[]`|
+|`s3CacheControlPerFile`|Overrides the cacheControl setting on a per-file basis (see example below)<br>Default: `{}`|
 |`s3DeployPath`|Path to deploy the app in the bucket<br>Default: `/`|
 |`s3Profile`|Specifies the credentials profile to use. For env vars, omit or set to 'default'.<br>Default: `default`
 |`s3StaticErrorPage`|Sets the default error file<br>Default: `index.html`|

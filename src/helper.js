@@ -60,7 +60,7 @@ export const defaults = {
   s3StaticIndexPage: 'index.html',
   s3StaticErrorPage: 'index.html',
   s3CacheControl: 'max-age=86400',
-  s3CacheControlPerFile: [],
+  s3CacheControlPerFile: {},
   s3ACL: 'public-read',
   s3DeployPath: '/',
   cloudFront: false,

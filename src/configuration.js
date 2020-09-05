@@ -48,7 +48,7 @@ class Configuration {
 
     // Bucket - Cache Control
     definitions.s3CacheControl = Joi.string().default(defaults.s3CacheControl)
-    definitions.s3CacheControlPerFile = Joi.array().default(defaults.s3CacheControlPerFile)
+    definitions.s3CacheControlPerFile = Joi.object().default(defaults.s3CacheControlPerFile)
 
     // Local Assets
     definitions.localAssetPath = Joi.string().default(defaults.localAssetPath)
