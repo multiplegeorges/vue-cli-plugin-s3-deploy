@@ -14,10 +14,11 @@ class Configuration {
     this.options = {}
 
     const definitions = {}
-    const pluginVersionError = err =>
+    const pluginVersionError = errors => new Error(
       `Configuration is out of date.
-      Config: ${err} Plugin: ${VERSION}
+      Config: ${errors[0].value} Plugin: ${VERSION}
       Run 'vue invoke s3-deploy'`
+    )
 
     // General
     definitions.pluginVersion = Joi.string().valid(VERSION).error(pluginVersionError).required()
@@ -28,44 +29,44 @@ class Configuration {
     })
 
     // AWS
-    definitions.awsUploadConcurrency = Joi.Number().min(1).default(5)
+    definitions.awsUploadConcurrency = Joi.number().min(1).default(5)
     definitions.awsEndpoint = Joi.string().default(defaults.awsEndpoint)
     definitions.awsRegion = Joi.string().regex(regex.regionName).default(defaults.awsRegion)
 
     // Bucket
     definitions.s3Profile = Joi.string().default(defaults.s3Profile)
     definitions.s3BucketName = Joi.string().regex(regex.bucketName).required()
-    definitions.s3BucketCreate = Joi.Boolean().default(defaults.s3BucketCreate)
+    definitions.s3BucketCreate = Joi.boolean().default(defaults.s3BucketCreate)
     definitions.s3ACL = Joi.string().default(defaults.s3ACL)
     definitions.s3DeployPath = Joi.string().default(defaults.s3DeployPath)
 
     // Bucket - Static Hosting
-    definitions.s3StaticHosting = Joi.Boolean().default(defaults.s3StaticHosting)
+    definitions.s3StaticHosting = Joi.boolean().default(defaults.s3StaticHosting)
     definitions.s3StaticIndexPage = Joi.string().default(defaults.s3StaticIndexPage)
     definitions.s3StaticErrorPage = Joi.string().default(defaults.s3StaticErrorPage)
     definitions.s3StaticWebsiteConfiguration = Joi.object()
 
     // Bucket - Cache Control
     definitions.s3CacheControl = Joi.string().default(defaults.s3CacheControl)
-    definitions.s3CacheControlPerFile = Joi.Array().default(defaults.s3CacheControlPerFile)
+    definitions.s3CacheControlPerFile = Joi.array().default(defaults.s3CacheControlPerFile)
 
     // Local Assets
     definitions.localAssetPath = Joi.string().default(defaults.localAssetPath)
-    definitions.localAssetMatch = Joi.Array().default(defaults.localAssetMatch)
+    definitions.localAssetMatch = Joi.array().default(defaults.localAssetMatch)
 
     // CloudFront
-    definitions.cloudFront = Joi.Boolean().default(defaults.cloudFront)
+    definitions.cloudFront = Joi.boolean().default(defaults.cloudFront)
     definitions.cloudFrontProfile = Joi.string().default(defaults.s3Profile)
     definitions.cloudFrontId = Joi.string()
-    definitions.cloudFrontMatchers = Joi.Array().default(defaults.cloudFrontMatchers)
+    definitions.cloudFrontMatchers = Joi.array().default(defaults.cloudFrontMatchers)
 
     // GZip Compression
-    definitions.gzip = Joi.Boolean().default(defaults.gzip)
-    definitions.gzipFilePattern = Joi.Array().default(defaults.gzipFilePattern)
+    definitions.gzip = Joi.boolean().default(defaults.gzip)
+    definitions.gzipFilePattern = Joi.array().default(defaults.gzipFilePattern)
 
     // Progressive Web App
-    definitions.pwa = Joi.Boolean().default(defaults.pwa)
-    definitions.pwaFiles = Joi.Array().default(defaults.pwaFiles)
+    definitions.pwa = Joi.boolean().default(defaults.pwa)
+    definitions.pwaFiles = Joi.array().default(defaults.pwaFiles)
 
     const optionsSchema = Joi.object().keys(definitions)
     const envOptions = this.applyEnvOverrides(options, Object.keys(definitions))
