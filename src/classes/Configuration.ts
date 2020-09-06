@@ -1,5 +1,5 @@
 import Joi from '@hapi/joi'
-import { defaults, regex } from './helper'
+import { defaults, regex } from '../helper'
 import { snakeCase } from 'lodash'
 
 const VERSION = '4.0.0-rc4'
@@ -26,12 +26,26 @@ class Configuration {
     definitions.fastGlobOptions = Joi.object().default({
       dot: true,
       onlyFiles: false
-    })
+    }) 
 
     // AWS
-    definitions.awsUploadConcurrency = Joi.number().min(1).default(5)
-    definitions.awsEndpoint = Joi.string().default(defaults.awsEndpoint)
-    definitions.awsRegion = Joi.string().regex(regex.regionName).default(defaults.awsRegion)
+    // definitions.awsUploadConcurrency = Joi.number().min(1).default(5)
+    // definitions.awsEndpoint = Joi.string().default(defaults.awsEndpoint)
+    // definitions.awsRegion = Joi.string().regex(regex.regionName).default(defaults.awsRegion)
+
+    definitions.aws = {
+      uploadConcurrency: Joi.number().min(1).default(5),
+      endpoint: Joi.string().default(defaults.awsEndpoint),
+      region: Joi.string().regex(regex.regionName).default(defaults.awsRegion)
+    }
+
+    definitions.bucket = {
+      profile: Joi.string().default(defaults.s3Profile),
+      name: Joi.string().regex(regex.bucketName).required(),
+      create: Joi.boolean().default(defaults.s3BucketCreate),
+      acl: Joi.string().default(defaults.s3ACL),
+      deployPath: Joi.string().default(defaults.s3DeployPath)
+    }
 
     // Bucket
     definitions.s3Profile = Joi.string().default(defaults.s3Profile)

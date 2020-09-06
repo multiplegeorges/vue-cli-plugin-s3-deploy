@@ -1,4 +1,4 @@
-import { VERSION } from './configuration'
+import { VERSION } from './classes/Configuration'
 
 module.exports = (api, options, rootOptions) => {
   api.extendPackage({

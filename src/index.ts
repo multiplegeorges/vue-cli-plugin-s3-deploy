@@ -1,8 +1,8 @@
 import '@babel/polyfill'
-import Deployer from './deployer'
+import Deployer from './classes/Deployer'
 import { invalidateDistribution } from './post-tasks'
 
-import Configuration from './configuration'
+import Configuration from './classes/Configuration'
 
 const {
   error,
@@ -23,7 +23,7 @@ module.exports = (api, configOptions) => {
     const options = configOptions.pluginOptions.s3Deploy
     const config = new Configuration(options)
 
-    if (!config.options.s3BucketName) {
+    if (!config.options.bucket.name) {
       error('Bucket name must be specified with `s3BucketName` in vue.config.js!')
       process.exit(1)
     }

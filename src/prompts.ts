@@ -87,22 +87,6 @@ module.exports = [
     default: defaults.s3StaticHosting
   },
   {
-    name: 's3StaticIndexPage',
-    type: 'input',
-    message: 'Filename of static index page:',
-    default: defaults.s3StaticIndexPage,
-    when: answers => answers.staticHosting === true,
-    validate: input => input !== '' ? true : 'A filename is required.'
-  },
-  {
-    name: 's3StaticErrorPage',
-    type: 'input',
-    message: 'Filename of static error page:',
-    default: defaults.s3StaticErrorPage,
-    when: answers => answers.staticHosting === true,
-    validate: input => input !== '' ? true : 'A filename is required.'
-  },
-  {
     name: 'localAssetPath',
     type: 'input',
     message: 'Where are your built files?',
@@ -150,36 +134,5 @@ module.exports = [
     when: answers => answers.pwa === true,
     validate: input => input !== '' ? true : 'At least one file path is requires.',
     filter: () => {}
-  },
-  {
-    name: 'cloudFront',
-    type: 'confirm',
-    message: 'Enable invalidation of a CloudFront distribution on deploy?',
-    default: defaults.cloudFront
-  },
-  {
-    name: 'cloudFrontProfile',
-    type: 'list',
-    message: 'How do you want to authenticate with AWS CloudFront?',
-    default: '0',
-    when: answers => answers.cloudFront === true,
-    choices: awsProfileNames,
-    filter: filterAwsProfileNames
-  },
-  {
-    name: 'cloudFrontId',
-    type: 'input',
-    message: 'What is the ID of the distribution to invalidate?',
-    default: '',
-    when: answers => answers.cloudFront === true,
-    validate: input => input !== '' ? true : 'A distribution ID is required.'
-  },
-  {
-    name: 'cloudFrontMatchers',
-    type: 'input',
-    message: 'Enter a comma-separated list of paths to invalidate:',
-    default: defaults.cloudFrontMatchers.join(','),
-    when: answers => answers.enableCloudFront === true,
-    validate: input => input !== '' ? true : 'At least one invalidation path is required. To invalidate all files, enter /* '
   }
 ]

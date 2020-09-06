@@ -70,12 +70,5 @@ dist
 .vscode
 
 # Babel output files
-/bucket.js
-/configuration.js
-/connection.js
-/deployer.js
-/generator.js
-/helper.js
-/index.js
-/post-tasks.js
-/prompts.js
+/classes/*.js
+/*.js
