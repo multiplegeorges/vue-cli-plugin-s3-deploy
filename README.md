@@ -55,28 +55,24 @@ Options are set in `vue.config.js` and overridden on a per-environment basis by 
 
 |Option|Description|
 |---|---|
-|`awsProfile`|Specifies the credentials profile to use. For env vars, omit or set to 'default'.<br>Default: `default`
-|`endpoint`|Override the default AWS endpoint with another e.g. DigitalOcean.<br>Default: |
-|`region`|AWS region for the specified bucket<br>Default: `us-east-1`|
-|`bucket`|The S3 bucket name (required)<br>Default:|
-|`createBucket`|Create the bucket if it doesn't exist<br>Default: `false`|
-|`staticHosting`|Enable S3 static site hosting<br>Default: `false`|
-|`staticIndexPage`|Sets the default index file<br>Default: `index.html`|
-|`staticErrorPage`|Sets the default error file<br>Default: `index.html`|
 |`assetPath`|The path to the built assets<br>Default: `dist`|
 |`assetMatch`|Regex matcher for asset to deploy<br>Default: `**`|
-|`deployPath`|Path to deploy the app in the bucket<br>Default: `/`|
-|`acl`|Access control list permissions to apply in S3<br>Default: `public-read`|
-|`pwa`|Sets max-age=0 for the PWA-related files specified<br>Default: `false`|
-|`pwaFiles`|Comma-separated list of files to treat as PWA files (see example below)<br>Default: `'index.html,service-worker.js,manifest.json'`|
-|`enableCloudFront`|Enables support for Cloudfront distribution invalidation<br>Default: `false`|
+|`s3Profile`|Specifies the credentials profile to use for S3. For env vars, omit or set to 'default'.<br>Default: `default`
+|`s3Region`|The S3 region for the specified bucket<br>Default: `us-east-1`|
+|`s3Endpoint`|Override the default S3 endpoint with another e.g. DigitalOcean.<br>Default: null|
+|`s3BucketName`|The S3 bucket name (required)<br>Default: null|
+|`s3DeployPath`|Path to deploy the app in the bucket<br>Default: `/`|
+|`s3ACL`|Access control list permissions to apply in S3<br>Default: `public-read`|
+|`s3CacheControl`|Sets cache-control metadata for all uploads, overridden for individual files by pwa settings (see example below)<br>Default: `max-age=86400`|
+|`s3CacheControlPerFile`|Overrides the cacheControl setting on a per-file basis (see example below)<br>Default: `[]`|
+|`s3Pwa`|Sets max-age=0 for the PWA-related files specified<br>Default: `false`|
+|`s3PwaFilePattern`|Comma-separated list of files to treat as PWA files (see example below)<br>Default: `'index.html,service-worker.js,manifest.json'`|
+|`s3Gzip`|Enables GZIP compression<br>Default: `true`|
+|`s3GzipFilePattern`|Pattern for matching files to be gzipped.<br>Default: `**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}`|
+|`cloudFront`|Enables support for Cloudfront distribution invalidation<br>Default: `false`|
 |`cloudFrontId`|The ID of the distribution to invalidate<br>Default:|
-|`cloudFrontMatchers`|A comma-separated list of paths to invalidate<br>Default: `/*`|
+|`cloudFrontFileMatch`|A comma-separated list of paths to invalidate<br>Default: `/*`|
 |`uploadConcurrency`|Number of concurrent uploads<br>Default: `5`|
-|`cacheControl`|Sets cache-control metadata for all uploads, overridden for individual files by pwa settings (see example below)<br>Default: `max-age=86400`|
-|`cacheControlPerFile`|Overrides the cacheControl setting on a per-file basis (see example below)<br>Default: `[]`|
-|`gzip`|Enables GZIP compression<br>Default: `true`|
-|`gzipFilePattern`|Pattern for matching files to be gzipped.<br>Default: `**/*.{js,css,json,ico,map,xml,txt,svg,eot,ttf,woff,woff2}`|
 |`onCompleteFunction`|Function to run when the upload has finished. Passing the options and errors.<br>Default: `function (options, error) {}`|
 |`fastGlobOptions`|[Fast Glob](https://www.npmjs.com/package/fast-glob) options.<br>Default: `{ dot: true, onlyFiles: false }`|
 
@@ -89,7 +85,7 @@ You can specify which files aren't cached by setting a value for the `pwaFiles` 
 
 ```js
 {
-    pwaFiles: "index.html,dont-cache.css,not-this.js"
+  pwaFiles: "index.html,dont-cache.css,not-this.js"
 }
 ```
 
@@ -102,7 +98,7 @@ For example, you may want to have files default to being cached for 1 day:
 
 ```js
 {
-    cacheControl: "max-age=86400"
+  cacheControl: "max-age=86400"
 }
 ```
 
@@ -113,10 +109,10 @@ The `cacheControlPerFile` option takes precedence over `cacheControl`. Invididua
 
 ```js
 {
-    cacheControlPerFile: {
-        'img/*': 'max-age=31536000',
-        'index.html': 'max-age=600'
-    }
+  cacheControlPerFile: {
+    'img/*': 'max-age=31536000',
+    'index.html': 'max-age=600'
+  }
 }
 ```
 
@@ -174,6 +170,20 @@ The AWS SDK will pick up the specified credentials from your `~/.aws/credentials
 
 To specify credentials other than `default` in `~/.aws/credentials`, re-run `vue invoke s3-deploy` and select a different profile.
 
+AWS Tasks
+---
+
+Create Bucket  
+`aws s3api create-bucket --bucket my-bucket --region us-east-1`  
+
+Enable Static Hosting on bucket  
+`aws s3 website s3://my-bucket/ --index-document index.html --error-document index.html`  
+
+Attach bucket policy  
+`aws s3api put-bucket-policy --bucket MyBucket --policy file://policy.json`
+
+Attach bucket CORS policy  
+`aws s3api put-bucket-cors --bucket MyBucket --cors-configuration file://cors.json`
 
 Changelog
 ---

@@ -1,6 +1,6 @@
 import { VERSION } from './classes/Configuration'
 
-module.exports = (api, options, rootOptions) => {
+module.exports = (api, options) => {
   api.extendPackage({
     scripts: {
       deploy: 'vue-cli-service s3-deploy'

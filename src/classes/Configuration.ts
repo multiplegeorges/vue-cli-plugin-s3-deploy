@@ -2,9 +2,18 @@ import Joi from '@hapi/joi'
 import { defaults, regex } from '../helper'
 import { snakeCase } from 'lodash'
 
-const VERSION = '4.0.0-rc4'
+const VERSION = '4.0.0-rc5'
+
+interface IDefintions {
+  pluginVersion: string
+  onCompleteFunction: any
+  fastGlobOptions: any
+}
 
 class Configuration {
+  prefix: string
+  definitions: IDefintions
+
   constructor (options) {
     if (!options) {
       throw new TypeError('Options are required.')
@@ -13,7 +22,6 @@ class Configuration {
     this.prefix = 'S3D'
     this.options = {}
 
-    const definitions = {}
     const pluginVersionError = errors => new Error(
       `Configuration is out of date.
       Config: ${errors[0].value} Plugin: ${VERSION}
@@ -21,9 +29,9 @@ class Configuration {
     )
 
     // General
-    definitions.pluginVersion = Joi.string().valid(VERSION).error(pluginVersionError).required()
-    definitions.onCompleteFunction = Joi.func().arity(2).default((_options, _error) => {})
-    definitions.fastGlobOptions = Joi.object().default({
+    this.definitions.pluginVersion = Joi.string().valid(VERSION).error(pluginVersionError).required()
+    this.definitions.onCompleteFunction = Joi.func().arity(2).default((_options, _error) => {})
+    this.definitions.fastGlobOptions = Joi.object().default({
       dot: true,
       onlyFiles: false
     }) 
@@ -48,25 +56,18 @@ class Configuration {
     }
 
     // Bucket
-    definitions.s3Profile = Joi.string().default(defaults.s3Profile)
-    definitions.s3BucketName = Joi.string().regex(regex.bucketName).required()
-    definitions.s3BucketCreate = Joi.boolean().default(defaults.s3BucketCreate)
-    definitions.s3ACL = Joi.string().default(defaults.s3ACL)
-    definitions.s3DeployPath = Joi.string().default(defaults.s3DeployPath)
-
-    // Bucket - Static Hosting
-    definitions.s3StaticHosting = Joi.boolean().default(defaults.s3StaticHosting)
-    definitions.s3StaticIndexPage = Joi.string().default(defaults.s3StaticIndexPage)
-    definitions.s3StaticErrorPage = Joi.string().default(defaults.s3StaticErrorPage)
-    definitions.s3StaticWebsiteConfiguration = Joi.object()
+    definitions.bucketProfile = Joi.string().default(defaults.s3Profile)
+    definitions.bucketName = Joi.string().regex(regex.bucketName).required()
+    definitions.bucketACL = Joi.string().default(defaults.s3ACL)
+    definitions.bucketPath = Joi.string().default(defaults.s3DeployPath)
 
     // Bucket - Cache Control
     definitions.s3CacheControl = Joi.string().default(defaults.s3CacheControl)
     definitions.s3CacheControlPerFile = Joi.array().default(defaults.s3CacheControlPerFile)
 
     // Local Assets
-    definitions.localAssetPath = Joi.string().default(defaults.localAssetPath)
-    definitions.localAssetMatch = Joi.array().default(defaults.localAssetMatch)
+    definitions.assetPath = Joi.string().default(defaults.assetPath)
+    definitions.assetMatch = Joi.array().default(defaults.assetMatch)
 
     // CloudFront
     definitions.cloudFront = Joi.boolean().default(defaults.cloudFront)
@@ -75,11 +76,9 @@ class Configuration {
     definitions.cloudFrontMatchers = Joi.array().default(defaults.cloudFrontMatchers)
 
     // GZip Compression
-    definitions.gzip = Joi.boolean().default(defaults.gzip)
     definitions.gzipFilePattern = Joi.array().default(defaults.gzipFilePattern)
 
     // Progressive Web App
-    definitions.pwa = Joi.boolean().default(defaults.pwa)
     definitions.pwaFiles = Joi.array().default(defaults.pwaFiles)
 
     const optionsSchema = Joi.object().keys(definitions)

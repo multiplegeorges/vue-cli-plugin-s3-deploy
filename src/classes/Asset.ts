@@ -2,12 +2,12 @@ class Asset {
   source: string | null = null
   destination: string | null = null
   type: string | null = null
-  size: number = 0
-  gzip: boolean = false
-  acl: string = ''
-  cacheControl: string = ''
+  size = 0
+  gzip = false
+  acl = ''
+  cacheControl = ''
 
-  constructor (source, destination) {
+  constructor (source: string, destination: string) {
     this.source = source
     this.destination = destination
   }

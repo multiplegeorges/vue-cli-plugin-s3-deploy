@@ -1,13 +1,8 @@
 import '@babel/polyfill'
 import Deployer from './classes/Deployer'
-import { invalidateDistribution } from './post-tasks'
-
 import Configuration from './classes/Configuration'
 
-const {
-  error,
-  warn
-} = require('@vue/cli-shared-utils')
+import { error, info } from '@vue/cli-shared-utils'
 
 process.on('unhandledRejection', (err) => {
   console.log(err)

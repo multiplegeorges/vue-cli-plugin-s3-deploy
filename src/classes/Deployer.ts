@@ -167,13 +167,11 @@ class Deployer {
 
     try {
       await this.bucket.validate()
-      if (this.config.options.staticUpdate) await this.bucket.enableHosting()
-    } catch (e) {
+    } catch (error) {
       // Bucket validation failed, so try to correct the error, but
       // let the error bubble up from here. We can't fix it.
       // It's probably a permissions issue in AWS.
-      await this.bucket.createBucket()
-      if (this.config.options.staticHosting) await this.bucket.enableHosting()
+      throw new Error(`AWS error: ${error.toString()}`)
     }
 
     info(`Deploying ${this.uploadTotal} assets from ${this.opt.localAssetPath} to ${this.remotePath}`)
