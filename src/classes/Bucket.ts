@@ -1,30 +1,27 @@
-import * as fs from 'fs'
-import * as zlib from 'zlib'
-import Connection from './Connection'
 import { error } from '@vue/cli-shared-utils'
 import { regex, errorMessages } from '../helper'
-import { S3 } from 'aws-sdk'
 
-interface IUploadParams {
-  Bucket: string
-  Key: string
-  ACL: string
-  Body: any
-  CacheControl?: string
-  ContentType: string
-  ContentEncoding?: string
+import Connection from './Connection'
+import Asset from './Asset'
+
+interface IConfig {
+  name: string | null
+  region: string | null
+  endpoint?: string | null
+  profile?: string | null
 }
-/**
- *
- */
-class Bucket {
-  name: string
-  region: string
-  connection
 
-  constructor (config) {
+class Bucket {
+  private name: string | null = null
+  private region: string | null = null
+  private acl: string | null = null
+  private connection
+
+  constructor (config: IConfig) {
     this.name = config.name
-    this.connection = new Connection({ region: config.region || null, endpoint: config.endpoint || null, profile: config.profile || null }).init('S3') as S3
+    this.region = config.region
+
+    this.connection = new Connection({ ...config }).init('S3')
 
     if (!this.name) {
       throw new TypeError('Bucket name must be defined.')
@@ -34,12 +31,16 @@ class Bucket {
       throw new TypeError(errorMessages.bucketName)
     }
 
+    if (!this.acl) {
+      throw new TypeError('Bucket ACL must be defined.')
+    }
+
     if (!this.connection) {
       throw new TypeError('Bucket requires a connection.')
     }
   }
 
-  async validate () {
+  async validate (): Promise<any> {
     try {
       return await this.connection.headBucket({ Bucket: this.name }).promise()
     } catch (e) {
@@ -58,33 +59,19 @@ class Bucket {
     }
   }
 
-  /**
-   *
-   * @param asset
-   * @returns {Promise<ManagedUpload.SendData>}
-   */
-  uploadFile (asset) {
-
-    // collect params
-    const uploadParams: IUploadParams = {
-      Bucket: this.name,
-      Key: asset.destination,
-      ACL: asset.acl,
-      Body: fs.readFileSync(asset.source),
-      ContentType: asset.type,
-      CacheControl: asset.cacheControl
-    }
-
-    // gzip if required
-    if (asset.gzip) {
-      uploadParams.Body = zlib.gzipSync(uploadParams.Body, { level: 9 })
-      uploadParams.ContentEncoding = 'gzip'
-    }
-
-    // start upload
+  uploadFile (asset: Asset): Promise<any> {
     return this.connection.upload(
-      uploadParams,
-      { partSize: (5 * 1024 * 1024), queueSize: 4 }
+      Object.assign(
+        asset.getUploadPamas(),
+        {
+          Bucket: this.name,
+          ACL: this.acl
+        }
+      ),
+      { 
+        partSize: (5 * 1024 * 1024), 
+        queueSize: 4 
+      }
     ).promise()
   }
 }

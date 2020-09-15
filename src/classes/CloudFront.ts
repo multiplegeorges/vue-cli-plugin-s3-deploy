@@ -1,17 +1,15 @@
 import Connection from './Connection'
 import { info, error, logWithSpinner, stopSpinner } from '@vue/cli-shared-utils'
 
-/**
- *
- */
 class CloudFront {
-  id: string
-  items: string[]
-  connection
+  private id: string | null = null
+  private items: string[] | null = null
+  private connection
 
   constructor (config) {
     this.id = config.id
-    this.connection = new Connection({ region: config.region || null, endpoint: config.endpoint || null, profile: config.profile || null }).init('CLOUDFRONT')
+
+    this.connection = new Connection({ ...config }).init('CLOUDFRONT')
     this.items = config.match.split(',')
 
     if (!this.id) {
@@ -23,7 +21,7 @@ class CloudFront {
     }
   }
 
-  async invalidateDistribution() {
+  async invalidateDistribution(): Promise<void> {
     logWithSpinner(`Invalidating CloudFront distribution: ${this.id}`)
   
     try {
@@ -59,4 +57,4 @@ class CloudFront {
   }
 }
 
-export default Bucket
+export default CloudFront

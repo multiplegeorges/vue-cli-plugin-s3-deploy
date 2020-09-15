@@ -72,3 +72,5 @@ dist
 # Babel output files
 /classes/*.js
 /*.js
+
+*.d.ts

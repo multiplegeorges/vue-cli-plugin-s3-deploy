@@ -1,7 +1,5 @@
 import path from 'path'
-import fs from 'fs'
 import micromatch from 'micromatch'
-import mime from 'mime-types'
 import { error, info } from '@vue/cli-shared-utils'
 import PromisePool from 'es6-promise-pool'
 import globby from 'globby'
@@ -9,24 +7,9 @@ import globby from 'globby'
 import Bucket from './Bucket'
 import Asset from './Asset'
 
-interface ICacheMatch {
-  pattern: string[]
-  cache: string
-}
-
-interface IOpt {
-  globbyOptions: any
-  localAssetMatch: string[]
-  localAssetPath: string
-  bucketPath: string
-  pwaMatch: string[]
-  gzipMatch: string[]
-  cacheMatch?: ICacheMatch[]
-}
-
 class Deployer {
 
-  opt: IOpt = {
+  opt = {
     globbyOptions: {},
     localAssetMatch: [],
     localAssetPath: 'dist/',
@@ -56,7 +39,7 @@ class Deployer {
     this.uploadTotal = this.queue.length
   }
 
-  getBucketPath() {
+  getBucketPath(): string {
     let bucketPath = this.opt.bucketPath
 
     // We don't need a leading slash for root deploys on S3.
@@ -72,11 +55,11 @@ class Deployer {
     return bucketPath;
   }
 
-  getSourcePath() {
+  getSourcePath(): string {
     return path.join(process.cwd(), this.opt.localAssetPath) + path.sep
   }
 
-  getFileBucketPath(fileSource) {
+  getFileBucketPath(fileSource: string): string {
     fileSource = fileSource.replace(this.getSourcePath(), '').replace(/\\/g, '/')
     return path.join(this.getBucketPath(), fileSource);
   }
@@ -88,12 +71,12 @@ class Deployer {
     this.opt.globbyOptions.cwd = sourcePath;
 
     // collect files to deploy
-    return globby.sync(sourcePath, this.opt.globbyOptions).map(sourceFilePath => {
-      return new Asset(
-        sourceFilePath,
+    return globby.sync(sourcePath, this.opt.globbyOptions).map(sourceFilePath => 
+      new Asset(
+        sourceFilePath, 
         this.getFileBucketPath(sourceFilePath)
       )
-    })
+    )
   }
 
   getCacheControl(file) {
@@ -115,23 +98,9 @@ class Deployer {
   }
 
   // update params on each file in queue
-  async processQueue() {
-    this.queue.map(file => {
-      const source = file.source
-
-      if (micromatch.isMatch(source, this.opt.gzipMatch)) {
-        file.gzipMatch = true
-      }
-
-      file.cacheControl = this.getCacheControl(file)
-
-      file.type = mime.lookup(file.source) || 'application/octet-stream'
-      file.size = fs.statSync(file.source).size
-
-      file.acl = this.opt.defaultAcl
-
-      return file
-    })
+  processQueue(): void {
+    this.queue.map((asset: Asset) => 
+      asset.setCacheControl(this.getCacheControl(asset)))
   }
 
 

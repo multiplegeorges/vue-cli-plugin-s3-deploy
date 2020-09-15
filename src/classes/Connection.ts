@@ -1,4 +1,3 @@
-import { ConfigurationOptions } from 'aws-sdk/lib/config'
 import { S3, CloudFront, SharedIniFileCredentials } from 'aws-sdk'
 
 interface IBucketConfig {

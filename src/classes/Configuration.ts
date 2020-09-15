@@ -4,15 +4,10 @@ import { snakeCase } from 'lodash'
 
 const VERSION = '4.0.0-rc5'
 
-interface IDefintions {
-  pluginVersion: string
-  onCompleteFunction: any
-  fastGlobOptions: any
-}
-
 class Configuration {
-  prefix: string
-  definitions: IDefintions
+  options
+  prefix
+  definitions
 
   constructor (options) {
     if (!options) {
@@ -22,7 +17,7 @@ class Configuration {
     this.prefix = 'S3D'
     this.options = {}
 
-    const pluginVersionError = errors => new Error(
+    const pluginVersionError = (errors: { value: any }[]) => new Error(
       `Configuration is out of date.
       Config: ${errors[0].value} Plugin: ${VERSION}
       Run 'vue invoke s3-deploy'`
@@ -30,59 +25,41 @@ class Configuration {
 
     // General
     this.definitions.pluginVersion = Joi.string().valid(VERSION).error(pluginVersionError).required()
-    this.definitions.onCompleteFunction = Joi.func().arity(2).default((_options, _error) => {})
-    this.definitions.fastGlobOptions = Joi.object().default({
-      dot: true,
-      onlyFiles: false
-    }) 
-
-    // AWS
-    // definitions.awsUploadConcurrency = Joi.number().min(1).default(5)
-    // definitions.awsEndpoint = Joi.string().default(defaults.awsEndpoint)
-    // definitions.awsRegion = Joi.string().regex(regex.regionName).default(defaults.awsRegion)
-
-    definitions.aws = {
-      uploadConcurrency: Joi.number().min(1).default(5),
-      endpoint: Joi.string().default(defaults.awsEndpoint),
-      region: Joi.string().regex(regex.regionName).default(defaults.awsRegion)
-    }
-
-    definitions.bucket = {
-      profile: Joi.string().default(defaults.s3Profile),
-      name: Joi.string().regex(regex.bucketName).required(),
-      create: Joi.boolean().default(defaults.s3BucketCreate),
-      acl: Joi.string().default(defaults.s3ACL),
-      deployPath: Joi.string().default(defaults.s3DeployPath)
-    }
-
-    // Bucket
-    definitions.bucketProfile = Joi.string().default(defaults.s3Profile)
-    definitions.bucketName = Joi.string().regex(regex.bucketName).required()
-    definitions.bucketACL = Joi.string().default(defaults.s3ACL)
-    definitions.bucketPath = Joi.string().default(defaults.s3DeployPath)
-
-    // Bucket - Cache Control
-    definitions.s3CacheControl = Joi.string().default(defaults.s3CacheControl)
-    definitions.s3CacheControlPerFile = Joi.array().default(defaults.s3CacheControlPerFile)
+    this.definitions.concurrentUploads = Joi.number().min(1).default(defaults.concurrentUploads)
+    this.definitions.fastGlobOptions = Joi.object().default(defaults.fastGlobOptions) 
+    this.definitions.onComplete = Joi.func().arity(2).default(defaults.onComplete)
 
     // Local Assets
-    definitions.assetPath = Joi.string().default(defaults.assetPath)
-    definitions.assetMatch = Joi.array().default(defaults.assetMatch)
+    this.definitions.assetPath = Joi.string().default(defaults.assetPath)
+    this.definitions.assetMatch = Joi.array().default(defaults.assetMatch)
+
+    // Bucket
+    this.definitions.s3Region =  Joi.string().regex(regex.regionName).default(defaults.s3Region)
+    this.definitions.s3Endpoint =  Joi.string().default(defaults.s3Endpoint)
+    this.definitions.s3Profile = Joi.string().default(defaults.s3Profile)
+    this.definitions.s3BucketName = Joi.string().regex(regex.bucketName).default(defaults.s3BucketName).required()
+    this.definitions.s3BucketACL = Joi.string().default(defaults.s3BucketACL)
+    this.definitions.s3DeployPath = Joi.string().default(defaults.s3DeployPath)
+
+    // Bucket - Cache Control
+    this.definitions.s3CacheControl = Joi.string().default(defaults.s3CacheControl)
+    this.definitions.s3CacheControlPerFileEnable = Joi.array().default(defaults.s3CacheControlPerFileEnable)
+    this.definitions.s3CacheControlPerFilePattern = Joi.array().default(defaults.s3CacheControlPerFilePattern)
 
     // CloudFront
-    definitions.cloudFront = Joi.boolean().default(defaults.cloudFront)
-    definitions.cloudFrontProfile = Joi.string().default(defaults.s3Profile)
-    definitions.cloudFrontId = Joi.string()
-    definitions.cloudFrontMatchers = Joi.array().default(defaults.cloudFrontMatchers)
+    this.definitions.cloudFrontEnable = Joi.boolean().default(defaults.cloudFrontEnable)
+    this.definitions.cloudFrontProfile = Joi.string().default(defaults.cloudFrontProfile)
+    this.definitions.cloudFrontId = Joi.string().default(defaults.cloudFrontId)
+    this.definitions.cloudFrontPattern = Joi.array().default(defaults.cloudFrontPattern)
 
     // GZip Compression
-    definitions.gzipFilePattern = Joi.array().default(defaults.gzipFilePattern)
+    this.definitions.gzipFilePattern = Joi.array().default(defaults.gzipFilePattern)
 
     // Progressive Web App
-    definitions.pwaFiles = Joi.array().default(defaults.pwaFiles)
+    this.definitions.pwaFilePattern = Joi.array().default(defaults.pwaFilePattern)
 
-    const optionsSchema = Joi.object().keys(definitions)
-    const envOptions = this.applyEnvOverrides(options, Object.keys(definitions))
+    const optionsSchema = Joi.object().keys(this.definitions)
+    const envOptions = this.applyEnvOverrides(options, Object.keys(this.definitions))
     const validOptions = optionsSchema.validate(envOptions)
 
     if (!validOptions.error) {
@@ -97,10 +74,10 @@ class Configuration {
    * @param options
    * @param optionNames
    */
-  applyEnvOverrides (options, optionNames) {
+  applyEnvOverrides (options, optionNames): unknown {
     const optionsCopy = { ...options }
 
-    optionNames.forEach((name) => {
+    optionNames.forEach((name: string | number) => {
       const envVar = `${this.prefix}_${snakeCase(name).toUpperCase()}`
       optionsCopy[name] = process.env[envVar] || optionsCopy[name]
     })
@@ -110,4 +87,5 @@ class Configuration {
 }
 
 export { VERSION }
+
 export default Configuration

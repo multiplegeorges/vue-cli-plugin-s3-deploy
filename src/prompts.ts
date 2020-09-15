@@ -1,4 +1,38 @@
-import { defaults, errorMessages, getAWSProfiles, filterAWSProfiles, regex } from './helper'
+import os from 'os'
+import fs from 'fs'
+import path from 'path'
+
+import { defaults, errorMessages, regex } from './helper'
+
+/**
+ * Search ~/.aws for a 'credentials' file and display any profiles found within.
+ */
+const getAWSProfiles = () => {
+  const profilePrefix = 'Profile: '
+  const profileNames = ['Environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, etc.']
+  const credentialsPath = path.join(os.homedir(), '.aws', 'credentials')
+
+  if (fs.existsSync(credentialsPath)) {
+    const credentials = fs.readFileSync(credentialsPath, 'utf8')
+    const matches = [...credentials.matchAll(regex.profileName)]
+
+    matches.forEach(match => profileNames.push(profilePrefix + match[1]))
+  }
+
+  return profileNames
+}
+
+/**
+ * Validate the AWS Profile name, or set default
+ */
+const filterAWSProfiles = (answer) => {
+  if (answer.startsWith('Environment variables:')) {
+    return defaults.s3Profile
+  } else {
+    return answer.replace('Profile: ', '')
+  }
+}
+
 
 module.exports = [
   {
@@ -42,7 +76,7 @@ module.exports = [
     }
   },
   {
-    name: 's3ACL',
+    name: 's3BucketACL',
     type: 'list',
     choices: [
       'private',
@@ -55,7 +89,7 @@ module.exports = [
       'none'
     ],
     message: 'Which Access Control List (ACL) setting should be applied to deployed files?',
-    default: defaults.s3ACL
+    default: defaults.s3BucketACL
   },
   {
     name: 's3CacheControl',
@@ -64,10 +98,17 @@ module.exports = [
     default: defaults.s3CacheControl
   },
   {
-    name: 's3CacheControlPerFile',
+    name: 's3CacheControlPerFileEnable',
     type: 'confirm',
     message: 'Enable custom CacheControl options?',
-    default: defaults.s3CacheControlPerFile
+    default: defaults.s3CacheControlPerFileEnable
+  },
+  {
+    name: 's3CacheControlPerFilePattern',
+    when: answers => answers.s3CacheControlPerFileEnable,
+    type: 'input',
+    message: 'Enable custom CacheControl options?',
+    default: defaults.s3CacheControlPerFilePattern
   },
   {
     name: 's3DeployPath',
@@ -79,18 +120,18 @@ module.exports = [
     name: 'pwa',
     type: 'confirm',
     message: 'Enable Progressive-Web-App cache options?',
-    default: defaults.pwa
+    default: defaults.pwaEnable
   },
   {
     name: 'gzip',
     type: 'confirm',
     message: 'Enable GZip compression options?',
-    default: defaults.gzip
+    default: defaults.gzipEnable
   },
   {
     name: 'cloudFront',
     type: 'confirm',
     message: 'Enable CloudFont Invalidation after deployment?',
-    default: defaults.cloudFront
+    default: defaults.cloudFrontEnable
   }
 ]
