@@ -2,7 +2,7 @@ import { snakeCase } from 'lodash';
 import Joi from 'joi';
 import { join } from 'path';
 
-const VERSION = '4.0.0-rc3'
+const VERSION = '4.0.0-rc4'
 
 class Configuration {
   constructor (options) {
